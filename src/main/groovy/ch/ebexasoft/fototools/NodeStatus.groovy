@@ -1,6 +1,8 @@
 package ch.ebexasoft.fototools
 
 import groovy.json.JsonOutput
+import groovy.json.StreamingJsonBuilder
+
 
 /**
  * Common class for node status. Will be subclassed for photo nodes
@@ -12,6 +14,12 @@ abstract class NodeStatus {
 	
 	File parentDir
 	
+	/**
+	 * Map with the tags and their values. The tag name (e.g. 'name', 
+	 * 'copyright', 'keywords') is the key. The value is a heterogenous
+	 * list, with the value for the tag as first element, the date/time
+	 * when it has been set as the second element. 
+	 */
 	Map myStatus = new LinkedHashMap ()
 	
 //	assert myStatus instanceof java.util.LinkedHashMap
@@ -35,11 +43,39 @@ abstract class NodeStatus {
 	 */
 	def String printValue (String key) {
 		
-		String value = myStatus[key]
-		println "value is $value"
-		return sprintf ('%1$-40s: %2$-10s = %3$s', [parentDir.absolutePath, key, value])		
+		List value = myStatus[key]
+		println "value is ${value[0]}, date is ${value[1]}"
+		return sprintf ('%1$-40s: %2$-10s = %3$s (%4$tFT%4$tT)', 
+			[parentDir.absolutePath, key, value[0], value[1]]
+		)		
 	}
-				
+	
+	/**
+	 * Create a list with a value and the date
+	 * @param value		value
+	 * @param date for the value (optional, default is now) 
+	 * @return
+	 */
+	def List createValueWithDate (String value, Date date = new Date()) {
+		[ value, date ]
+	}
+
+	/**
+	 * Write this node to a JSON string
+	 * @return the JSON String (pretty)
+	 */
+	def String toJson () {
+		
+		StringWriter writer = new StringWriter()
+		StreamingJsonBuilder builder = new StreamingJsonBuilder(writer)
+		builder.node {
+			dir parentDir.absolutePath
+			status myStatus
+		}
+		String json = JsonOutput.prettyPrint(writer.toString())
+	}
+
+	
 //		assert 'Groovy is cool!' == sprintf( '%2$s %3$s %1$s', ['cool!', 'Groovy', 'is'])
 //		assert '00042' == sprintf('%05d', 42)
 }

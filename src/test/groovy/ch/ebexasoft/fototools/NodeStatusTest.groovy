@@ -9,6 +9,9 @@ import static groovy.test.GroovyAssert.assertNull
 import static groovy.test.GroovyAssert.assertTrue
 import static groovy.test.GroovyAssert.shouldFail
 
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+
 import org.junit.Before
 import org.junit.Test
 
@@ -19,10 +22,13 @@ import org.junit.Test
 class NodeStatusTest {
 
 	File testRoot
+	Date testDate
+	DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-zzz");
 	
 	@Before
 	void before() {
 		testRoot = new File("/home/edith/Bilder/fürUli")
+		testDate = df.parse("2016-10-29T18:59:45-MESZ")
 	}
 	
 	/**
@@ -49,7 +55,6 @@ class NodeStatusTest {
 		treeStatus.initChildren()
 		assertNotNull(treeStatus.children)
 		assertTrue (treeStatus.children instanceof List)
-//		assertTrue (treeStatus.children instanceof Set)
 		
 		treeStatus.children.each { assertNotNull(it) }
 
@@ -66,8 +71,11 @@ class NodeStatusTest {
 		treeStatus.initChildren()
 		assertNotNull(treeStatus.children)
 		
-		treeStatus.myStatus['copyright'] = "true"
-		assertEquals ("/home/edith/Bilder/fürUli               : copyright  = true", treeStatus.printValue("copyright"))
+		treeStatus.myStatus['copyright'] = ["true", testDate]
+		assertEquals (
+			"/home/edith/Bilder/fürUli               : copyright  = true (2016-10-29T18:59:45)", 
+			treeStatus.printValue("copyright")
+		)
 				
 	}
 
@@ -95,7 +103,7 @@ class NodeStatusTest {
 		
 		MyNodeStatus treeStatus = new MyNodeStatus(testRoot)
 		
-		String json = NodeUtils2.toJson (treeStatus)
+		String json = treeStatus.toJson()
 		assertNotNull (json)
 		println "json String:\n$json"
 		

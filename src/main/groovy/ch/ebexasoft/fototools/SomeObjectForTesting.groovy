@@ -13,7 +13,7 @@ class SomeObjectForTesting {
 
 	String name 
 	Map myStatus = new LinkedHashMap ()
-	File myRoot
+//	File myRoot
 	
 	/**
 	 * 
@@ -22,7 +22,7 @@ class SomeObjectForTesting {
 		
 		this.name = name
 		this.myStatus['key'] = 'a value'
-		this.myRoot = new File ('/home')
+//		this.myRoot = new File ('/home')
 	}
 		
 

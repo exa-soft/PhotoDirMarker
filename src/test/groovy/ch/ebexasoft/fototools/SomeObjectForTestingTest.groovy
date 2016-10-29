@@ -50,12 +50,10 @@ class SomeObjectForTestingTest {
 		
 		MyNodeStatus myNodeStatus = new MyNodeStatus(new File ('/home'))
 		
-		def json = JsonOutput.toJson (myNodeStatus)
-		def json2 = JsonOutput.prettyPrint(json)
+		def json = myNodeStatus.toJson ()
 
-		assertNotNull (json2)
-		println (json2)
-				
+		assertNotNull (json)
+		println (json)
 	}
 
 	
