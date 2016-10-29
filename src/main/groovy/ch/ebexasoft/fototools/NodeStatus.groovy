@@ -1,5 +1,7 @@
 package ch.ebexasoft.fototools
 
+import groovy.json.JsonOutput
+
 /**
  * Common class for node status. Will be subclassed for photo nodes
  * and children nodes.
@@ -42,14 +44,31 @@ abstract class NodeStatus {
 //		assert '00042' == sprintf('%05d', 42)
 }
 
+
 /**
- * Class that encapsulates status of this directory 
+ * Class that encapsulates status of this directory (no links to children)
+ * and can be read/written to the file 'thisDirFileStatus.txt'.
  * 
  * @author edith
  *
  */
-class TreeNodeStatus extends NodeStatus 
-{
+class MyNodeStatus extends NodeStatus {
+	
+	public static final String FILENAME = 'thisDirFileStatus.txt'
+
+	MyNodeStatus (File parentDir) {
+		super(parentDir)
+	}
+	
+} 
+
+/**
+ * Class that encapsulates status of this directory, with links to children
+ * 
+ * @author edith
+ *
+ */
+class TreeNodeStatus extends NodeStatus {
 
 	TreeNodeStatus (File parentDir) {
 		super(parentDir)

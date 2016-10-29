@@ -3,8 +3,6 @@
  */
 package ch.ebexasoft.fototools
 
-import org.junit.Test
-
 import static groovy.test.GroovyAssert.assertEquals
 import static groovy.test.GroovyAssert.assertNotNull
 import static groovy.test.GroovyAssert.assertNull
@@ -86,7 +84,23 @@ class NodeStatusTest {
 		assertTrue (System.out instanceof PrintStream)
 		
 		treeStatus.listTree(System.out)
-//		fail("Not yet implemented"); // TODO
 	}
 
+	
+	/**
+	 * Test method for {@link ch.ebexasoft.fototools.MyNodeStatus#printValue(java.lang.String)}.
+	 */
+	@Test
+	public void testPrintJson() {
+		
+		MyNodeStatus treeStatus = new MyNodeStatus(testRoot)
+		
+		String json = NodeUtils2.toJson (treeStatus)
+		assertNotNull (json)
+		println "json String:\n$json"
+		
+		assertTrue (System.out instanceof PrintStream)
+	}
+
+	
 }
