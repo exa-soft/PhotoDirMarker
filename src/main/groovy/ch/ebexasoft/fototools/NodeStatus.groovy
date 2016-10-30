@@ -68,16 +68,48 @@ abstract class NodeStatus {
 		
 		StringWriter writer = new StringWriter()
 		StreamingJsonBuilder builder = new StreamingJsonBuilder(writer)
-		builder.node {
+        builder {
 			dir parentDir.absolutePath
 			status myStatus
 		}
 		String json = JsonOutput.prettyPrint(writer.toString())
 	}
-
 	
-//		assert 'Groovy is cool!' == sprintf( '%2$s %3$s %1$s', ['cool!', 'Groovy', 'is'])
-//		assert '00042' == sprintf('%05d', 42)
+	
+	/**
+	 * Write this node to the given file in JSON format
+	 */
+	def toFile (File target) {
+		
+		target.withPrintWriter('UTF-8') {
+			it.write(toJson())
+		}
+	} 
+    
+    /**
+     * Helper method to instatiate objects from JSON (via pure Groovy objects).
+     * Must be a map with two entries: 
+     * <ul>
+     * <li>key 'dir', value the parent directory path</li>
+     * <li>key 'status', value a map with tag values, where each has its tag name 
+     * as key and an array for the values (first value the tag value string, second 
+     * value the date)</li>
+     * </ul>
+     * However, the values will not be tested, will only be read from the map and 
+     * put into the object (parentDir and status map).  
+     * @param map   a map with the object
+     * @param obj   the object to initialize (fill) with values from the map
+     * @return  the filled object
+     */
+    static NodeStatus fillFromMap (Map map, NodeStatus obj) {
+        
+        assert map.keySet().contains('dir')
+        assert map.keySet().contains('status')
+        
+        obj.parentDir = new File (map['dir'])
+        obj.myStatus = map['status']
+    }
+
 }
 
 
@@ -96,6 +128,23 @@ class MyNodeStatus extends NodeStatus {
 		super(parentDir)
 	}
 	
+	/**
+	 * Write the status to the file #FILENAME in the node's 
+	 * directory. 
+	 */
+	def toFile () {
+		
+		toFile (new File (parentDir, FILENAME))
+	}
+	
+	
+	static MyNodeStatus fromDir (File parentDir) {
+		
+		File statusFile = new File (parentDir, FILENAME)
+		// TODO read file, then use NodeStatus.fillFromMap to make new object
+		
+	} 
+	
 } 
 
 /**
@@ -111,7 +160,6 @@ class TreeNodeStatus extends NodeStatus {
 	}
 		
 	List children = null
-//	Set children = null
 	
 	/**
 	 * Initializes the tree, starting from my directory. 
