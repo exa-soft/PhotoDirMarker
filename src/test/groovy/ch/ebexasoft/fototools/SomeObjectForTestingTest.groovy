@@ -37,44 +37,28 @@ class SomeObjectForTestingTest {
 		
 		def json = JsonOutput.toJson (so1)
 		def json2 = JsonOutput.prettyPrint(json)
-
 		assertNotNull (json2)
-		
-		println (json2)
-				
+//		println (json2)
 	}
 	
-
-	@Test
-	public void testMyNodeStatus() {
-		
-		MyNodeStatus myNodeStatus = new MyNodeStatus(new File ('/home'))
-		
-		def json = myNodeStatus.toJson ()
-
-		assertNotNull (json)
-		println (json)
-	}
-
 	
 	@Test
 	public void testMyNodeStatusWithStreaming () {
 		
 		MyNodeStatus myNodeStatus = new MyNodeStatus(new File ('/home'))
-		myNodeStatus.myStatus['someKey'] = 'value1'
-		myNodeStatus.myStatus['key2'] = 'value 222'
+		myNodeStatus.status['someKey'] = 'value1'
+		myNodeStatus.status['key2'] = 'value 222'
 	
 		StringWriter writer = new StringWriter()
 		StreamingJsonBuilder builder = new StreamingJsonBuilder(writer)
 		builder.node {
 			dir myNodeStatus.parentDir.absolutePath
-			status myNodeStatus.myStatus
+			status myNodeStatus.status
 		}
 		String json = JsonOutput.prettyPrint(writer.toString())
-	
 
 		assertNotNull (json)
-		println (json)
+//		println (json)
 				
 	}
 

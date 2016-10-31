@@ -1,0 +1,7 @@
+{
+    "dir": "/home/edith/irgendwo/Fotos",
+    "status": {
+        "name": ["true", "2016-10-29T18:59:45-MESZ"],
+        "copyright": ["false", "2016-12-07T05:35:57-MESZ"]
+    }
+}

@@ -1,6 +1,8 @@
 package ch.ebexasoft.fototools
 
 import groovy.json.JsonOutput
+import groovy.json.JsonParserType
+import groovy.json.JsonSlurper
 import groovy.json.StreamingJsonBuilder
 
 
@@ -20,7 +22,7 @@ abstract class NodeStatus {
 	 * list, with the value for the tag as first element, the date/time
 	 * when it has been set as the second element. 
 	 */
-	Map myStatus = new LinkedHashMap ()
+	Map status = new LinkedHashMap ()
 	
 //	assert myStatus instanceof java.util.LinkedHashMap
 //	def colors = [red: '#FF0000', green: '#00FF00', blue: '#0000FF']
@@ -33,7 +35,7 @@ abstract class NodeStatus {
 //	assert colors instanceof java.util.LinkedHashMap
 	
 	NodeStatus (File parentDir) {
-		this.parentDir = parentDir
+		this.parentDir = parentDir.absoluteFile
 	}
 	
 	/**
@@ -43,7 +45,7 @@ abstract class NodeStatus {
 	 */
 	def String printValue (String key) {
 		
-		List value = myStatus[key]
+		List value = status[key]
 		println "value is ${value[0]}, date is ${value[1]}"
 		return sprintf ('%1$-40s: %2$-10s = %3$s (%4$tFT%4$tT)', 
 			[parentDir.absolutePath, key, value[0], value[1]]
@@ -70,7 +72,7 @@ abstract class NodeStatus {
 		StreamingJsonBuilder builder = new StreamingJsonBuilder(writer)
         builder {
 			dir parentDir.absolutePath
-			status myStatus
+			status status
 		}
 		String json = JsonOutput.prettyPrint(writer.toString())
 	}
@@ -102,12 +104,14 @@ abstract class NodeStatus {
      * @return  the filled object
      */
     static NodeStatus fillFromMap (Map map, NodeStatus obj) {
-        
+                
         assert map.keySet().contains('dir')
         assert map.keySet().contains('status')
+        assert map['dir'] instanceof String
+        assert map['status'] instanceof Map
         
-        obj.parentDir = new File (map['dir'])
-        obj.myStatus = map['status']
+        obj.parentDir = new File(map['dir'])
+        obj.status.putAll(map['status'])
     }
 
 }
@@ -137,12 +141,24 @@ class MyNodeStatus extends NodeStatus {
 		toFile (new File (parentDir, FILENAME))
 	}
 	
-	
+    /**
+     * Helper method to instantiate objects from JSON (via pure Groovy objects).
+     * @see NodeStatus
+     * @param dir   the directory where to read the file from
+     * @return  the filled object
+     */	
 	static MyNodeStatus fromDir (File parentDir) {
 		
-		File statusFile = new File (parentDir, FILENAME)
-		// TODO read file, then use NodeStatus.fillFromMap to make new object
-		
+        def jsonSlurper = new JsonSlurper(type: JsonParserType.LAX)
+        def obj = jsonSlurper.parse(new File (parentDir, FILENAME), 'UTF-8')
+                
+        MyNodeStatus my = new MyNodeStatus(parentDir)
+        assert obj instanceof Map
+        assert my instanceof NodeStatus
+        NodeStatus.fillFromMap (obj, my)
+        // TODO should we warn if obj.parentDir not equals parentDir? (file in wrong directory)
+        my.parentDir = parentDir.absoluteFile
+        return my
 	} 
 	
 } 
@@ -186,11 +202,10 @@ class TreeNodeStatus extends NodeStatus {
 	 * @return
 	 */
 	def listTree (PrintStream ps) {
-//	def listTree () {
 		
 		initChildren()
 		
-		IndentPrinter p = new IndentPrinter (new PrintWriter(ps))
+		IndentPrinter p = new IndentPrinter (new PrintWriter(ps), '+---')
 		listTreeInternal(p)
 		p.flush()
 	}
@@ -199,7 +214,8 @@ class TreeNodeStatus extends NodeStatus {
 	private def listTreeInternal (IndentPrinter p) {
 		
 		p.printIndent()
-		p.println(parentDir.absolutePath)
+//		p.println(parentDir.absolutePath)
+        p.println(parentDir.name)
 		
 		p.incrementIndent()
 		children.each { it.listTreeInternal(p) }

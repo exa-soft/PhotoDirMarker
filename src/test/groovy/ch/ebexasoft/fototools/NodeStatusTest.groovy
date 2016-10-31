@@ -24,12 +24,14 @@ import org.junit.Test
 class NodeStatusTest {
 
 	File testRoot
+    File resourcesDir
 	Date testDate, testDate2
 	DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-zzz");
 	
 	@Before
 	void before() {
 		testRoot = new File("/home/edith/Bilder/fürUli")
+        resourcesDir = new File ('src/test/resources')
 		testDate = df.parse("2016-10-29T18:59:45-MESZ")
         testDate2 = df.parse("2016-12-07T05:35:57-MESZ")
 	}
@@ -42,7 +44,7 @@ class NodeStatusTest {
 			
 		TreeNodeStatus treeStatus = new TreeNodeStatus(testRoot)
 		assertNotNull(treeStatus)
-		assertNotNull(treeStatus.myStatus)
+		assertNotNull(treeStatus.status)
 		assertNull(treeStatus.children)		
 	}
 
@@ -52,7 +54,7 @@ class NodeStatusTest {
 			
 		TreeNodeStatus treeStatus = new TreeNodeStatus(testRoot)
 		assertNotNull(treeStatus)
-		assertNotNull(treeStatus.myStatus)
+		assertNotNull(treeStatus.status)
 		assertNull(treeStatus.children)
 				
 		treeStatus.initChildren()
@@ -72,7 +74,7 @@ class NodeStatusTest {
 		treeStatus.initChildren()
 		assertNotNull(treeStatus.children)
 		
-		treeStatus.myStatus['copyright'] = ["true", testDate]
+		treeStatus.status['copyright'] = ["true", testDate]
 		assertEquals (
 			"/home/edith/Bilder/fürUli               : copyright  = true (2016-10-29T18:59:45)", 
 			treeStatus.printValue("copyright")
@@ -115,8 +117,8 @@ class NodeStatusTest {
     }
 }''', json)
         
-        treeStatus.myStatus['name'] = ["true", testDate]
-        treeStatus.myStatus['copyright'] = ["false", testDate2]
+        treeStatus.status['name'] = ["true", testDate]
+        treeStatus.status['copyright'] = ["false", testDate2]
         
         json = treeStatus.toJson()
         assertNotNull (json)
@@ -133,8 +135,11 @@ class NodeStatusTest {
         
 	}
 
+    /**
+     * Test method to read a json String (with empty status map)  
+     */
 	@Test
-	public void testReadJson () {
+	public void testReadJson_emptyStatus () {
 				
 //		The JSON standard supports the following primitive data types: string, number, object, true, false and null. JsonSlurper converts these JSON types into corresponding Groovy types.
         def jsonSlurper = new JsonSlurper()
@@ -151,10 +156,20 @@ class NodeStatusTest {
 		assert object.dir instanceof String
         assertEquals "/home/edith/irgendwo/Fotos", object.dir
 		assert object.status instanceof Map
-        assertEquals null, object.status.size
+        assertEquals null, object.status.size       							
+	}
 
+    
+    /**
+     * Test method to read a json String (with 2 elements in the empty status map)
+     */
+    @Test
+	public void testReadJson_nonemptyStatus () {
+				
+        def jsonSlurper = new JsonSlurper()
+        
         // object with non-empty status
-		object = jsonSlurper.parseText '''{
+		def object = jsonSlurper.parseText '''{
 			"dir": "/home/edith/irgendwo/Fotos",
 			"status": {
 				"name": ["true", "2016-10-29T18:59:45-MESZ"],
@@ -179,7 +194,86 @@ class NodeStatusTest {
         assertEquals 2, values.size()
         assertEquals 'false', values[0]
         assertEquals '2016-12-07T05:35:57-MESZ', values[1]
-       							
 	}
 	
+    
+    /**
+     * Test method to create a MyNodeStatus object from a json File 
+     * (with 2 elements in the empty status map)
+     */
+    @Test
+    public void testReadJson_file2Object () {
+
+        assertEquals '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources',
+            resourcesDir.absolutePath
+        File testDir = new File (resourcesDir, 'jsonSource1').absoluteFile
+        assertEquals '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/jsonSource1',
+            testDir.absolutePath
+        
+        MyNodeStatus st = MyNodeStatus.fromDir(testDir)
+        
+        assert st instanceof MyNodeStatus        
+        assert st.parentDir instanceof File
+        assertEquals testDir.absoluteFile, st.parentDir
+        assert st.status instanceof Map
+        Map sts = st.status
+        assertEquals 2, sts.size()
+        
+        assert sts.keySet().contains('name')
+        def values = sts['name']
+        assertEquals 2, values.size()
+        assertEquals 'true', values[0]
+        assertEquals '2016-10-29T18:59:45-MESZ', values[1]
+        
+        assert sts.keySet().contains('copyright')
+        values = sts['copyright']
+        assertEquals 2, values.size()
+        assertEquals 'false', values[0]
+        assertEquals '2016-12-07T05:35:57-MESZ', values[1]
+    }
+
+    
+    /**
+     * Test method to create a json file MyNodeStatus object from a json String
+     * (with 2 elements in the empty status map)
+     */
+    @Test
+    public void testWriteJson_obj2File () {
+
+        assertEquals '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources',
+            resourcesDir.absolutePath
+        File testDir = new File (resourcesDir, 'jsonTarget1').absoluteFile
+        assertEquals '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/jsonTarget1',
+            testDir.absolutePath
+
+        if (!testDir.exists()) assert testDir.mkdir()
+        File testTarget = new File (testDir, MyNodeStatus.FILENAME)
+        if (testTarget.exists()) assert testTarget.delete()
+        assert !testTarget.exists()
+        
+        MyNodeStatus st = new MyNodeStatus (testDir)
+        st.status['name'] = ['true', '2016-10-29T18:59:45-MESZ']
+        st.status['copyright'] = ['false', '2016-12-07T05:35:57-MESZ']
+        
+        st.toFile()
+        assert testTarget.exists()
+                
+        String fileContents = testTarget.getText('UTF-8')
+        assertEquals '''{
+    "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/jsonTarget1",
+    "status": {
+        "name": [
+            "true",
+            "2016-10-29T18:59:45-MESZ"
+        ],
+        "copyright": [
+            "false",
+            "2016-12-07T05:35:57-MESZ"
+        ]
+    }
+}''', fileContents
+
+    }
+
+    
 }
