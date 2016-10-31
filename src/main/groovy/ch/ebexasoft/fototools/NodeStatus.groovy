@@ -114,6 +114,10 @@ abstract class NodeStatus {
         obj.status.putAll(map['status'])
     }
 
+    def String toString () {
+        "[parentDir=$parentDir, status=$status"
+    }
+
 }
 
 
@@ -149,8 +153,11 @@ class MyNodeStatus extends NodeStatus {
      */	
 	static MyNodeStatus fromDir (File parentDir) {
 		
+        File statusFile = new File (parentDir, FILENAME)
+        if (!statusFile.exists()) return null
+        
         def jsonSlurper = new JsonSlurper(type: JsonParserType.LAX)
-        def obj = jsonSlurper.parse(new File (parentDir, FILENAME), 'UTF-8')
+        def obj = jsonSlurper.parse(statusFile, 'UTF-8')
                 
         MyNodeStatus my = new MyNodeStatus(parentDir)
         assert obj instanceof Map
@@ -163,63 +170,59 @@ class MyNodeStatus extends NodeStatus {
 	
 } 
 
+
 /**
- * Class that encapsulates status of this directory, with links to children
- * 
+ * Class that encapsulates the combined status of this directory and all 
+ * its children. 
+ * It can be written to the file 'collectedFileStatus.txt', but these files 
+ * will not be read, they remain in the directory as a marker for the (human)
+ * user and for usage outside of this tool.<br>
+ * Status is combined as follows: 
+ * <ul>
+ * <li>Process starts at deepest point in folder structure. It collects 
+ * all tags of all folders on that level into one map. If a tag already 
+ * exists with a different value, its value in the combined map will be 
+ * set to "mixed".</li>
+ * <li>Then the result is propagated to the next higher level and again 
+ * combined with those of the sister folders</li>
+ * </ul>    
+ *
  * @author edith
  *
  */
-class TreeNodeStatus extends NodeStatus {
-
-	TreeNodeStatus (File parentDir) {
-		super(parentDir)
-	}
-		
-	List children = null
-	
-	/**
-	 * Initializes the tree, starting from my directory. 
-	 * Will be done only once (does nothing if children is not null).
-	 * 
-	 * @return
-	 */
-	def initChildren ()	{
-		
-		if (children == null) {
-		
-			children = []
-			this.parentDir.eachDirRecurse() {
-				NodeStatus childStatus = new TreeNodeStatus(it)
-				childStatus.initChildren ()
-				children.add(childStatus)
-			}
-//			println "have children for ${parentDir.absolutePath}"
-		}
-	}
-	
-	/**
-	 * Lists the tree (with spacing so to indent the levels)
-	 * @return
-	 */
-	def listTree (PrintStream ps) {
-		
-		initChildren()
-		
-		IndentPrinter p = new IndentPrinter (new PrintWriter(ps), '+---')
-		listTreeInternal(p)
-		p.flush()
-	}
-	
-	
-	private def listTreeInternal (IndentPrinter p) {
-		
-		p.printIndent()
-//		p.println(parentDir.absolutePath)
-        p.println(parentDir.name)
-		
-		p.incrementIndent()
-		children.each { it.listTreeInternal(p) }
-		p.decrementIndent()
-	}
-		
+class DirStatus extends NodeStatus {
+    
+    public static final String FILENAME = 'collectedFileStatus.txt'
+    public static final String MIXEDVALUE = 'mixed'
+    
+    DirStatus (File parentDir) {
+        super(parentDir)
+    }
+    
+    /**
+     * Write the status to the file #FILENAME in the node's
+     * directory.
+     */
+    def toFile () {
+        
+        toFile (new File (parentDir, FILENAME))
+    }
+    
+    /** 
+     * Combines vales: when the key does not exist, the value will be 
+     * added. If it does exist and has a different value than the one
+     * from the parameter, it will be changed to "mixed" (@link #MIXEDVALUE}.
+     * @param key       the key
+     * @param value     the value
+     */
+    def combineValue (String key, String value) {
+        
+        String existingValue = status[key]
+        if (existingValue == null)
+            status[key] = value
+        else if (!existingValue.equals(value)) {
+            status[key] = MIXEDVALUE
+        }
+    }
 }
+

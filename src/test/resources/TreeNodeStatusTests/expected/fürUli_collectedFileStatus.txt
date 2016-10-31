@@ -1,0 +1,36 @@
+{
+    "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/testDirOriginal/fürUli/gezeigt/2016Berge",
+    "collected": "2016-10-31T11:23:57-CET"
+    "status": {
+        "y1y2y3": "true",
+        "y1y2n3": "mixed",
+        "y1y2q3": "mixed",
+        "y1y2_3": "mixed",
+        "y1n2": "mixed",
+        "y1q2": "mixed",
+        "y1_2": "mixed",
+
+        "n1y2": "mixed",
+        "n1n2y3": "mixed",
+        "n1n2n3": "false",
+        "n1n2q3": "mixed",
+        "n1n2_3": "mixed",
+        "n1q2": "mixed",
+        "n1_2": "mixed",
+
+        "q1y2": "mixed",
+        "q1n2": "mixed",
+        "q1q2y3": "mixed",
+        "q1q2n3": "mixed",
+        "q1q2q3": "?", 
+        "q1q2_3": "mixed",
+        "q1_2": "mixed",
+
+        "_1y2": "mixed",
+        "_1n2": "mixed",
+        "_1q2": "mixed",
+        "_1_2y3": "mixed",
+        "_1_2n3": "mixed",
+        "_1_2q3": "mixed"
+    }
+}

@@ -3,16 +3,14 @@
  */
 package ch.ebexasoft.fototools
 
-import static groovy.test.GroovyAssert.assertEquals
-import static groovy.test.GroovyAssert.assertNotNull
-import static groovy.test.GroovyAssert.assertNull
-import static groovy.test.GroovyAssert.assertTrue
-import static groovy.test.GroovyAssert.shouldFail
-import groovy.json.JsonSlurper
-import jdk.nashorn.internal.ir.LiteralNode.NullLiteralNode;
+import static groovy.test.GroovyAssert.*
 
+import groovy.json.JsonSlurper
+
+import java.io.File;
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Date;
 
 import org.junit.Before
 import org.junit.Test
@@ -23,79 +21,21 @@ import org.junit.Test
  */
 class NodeStatusTest {
 
-	File testRoot
     File resourcesDir
-	Date testDate, testDate2
-	DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-zzz");
+    File testRoot
+    Date testDate
+    Date testDate2
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-zzz");
+
 	
 	@Before
 	void before() {
-		testRoot = new File("/home/edith/Bilder/fürUli")
         resourcesDir = new File ('src/test/resources')
-		testDate = df.parse("2016-10-29T18:59:45-MESZ")
+        testRoot = new File("/home/edith/Bilder/fürUli")
+        testDate = df.parse("2016-10-29T18:59:45-MESZ")
         testDate2 = df.parse("2016-12-07T05:35:57-MESZ")
 	}
 	
-	/**
-	 * Test method for {@link ch.ebexasoft.fototools.NodeStatus#NodeStatus(java.io.File)}.
-	 */
-	@Test
-	public void testTreeNodeStatus() {
-			
-		TreeNodeStatus treeStatus = new TreeNodeStatus(testRoot)
-		assertNotNull(treeStatus)
-		assertNotNull(treeStatus.status)
-		assertNull(treeStatus.children)		
-	}
-
-	
-	@Test
-	public void testInitChildren () {
-			
-		TreeNodeStatus treeStatus = new TreeNodeStatus(testRoot)
-		assertNotNull(treeStatus)
-		assertNotNull(treeStatus.status)
-		assertNull(treeStatus.children)
-				
-		treeStatus.initChildren()
-		assertNotNull(treeStatus.children)
-		assertTrue (treeStatus.children instanceof List)
-		treeStatus.children.each { assertNotNull(it) }
-	}
-
-	
-	/**
-	 * Test method for {@link ch.ebexasoft.fototools.NodeStatus#initChildren()}.
-	 */
-	@Test
-	public void testPrintValue() {
-		
-		TreeNodeStatus treeStatus = new TreeNodeStatus(testRoot)
-		treeStatus.initChildren()
-		assertNotNull(treeStatus.children)
-		
-		treeStatus.status['copyright'] = ["true", testDate]
-		assertEquals (
-			"/home/edith/Bilder/fürUli               : copyright  = true (2016-10-29T18:59:45)", 
-			treeStatus.printValue("copyright")
-		)				
-	}
-
-	
-	
-	/**
-	 * Test method for {@link ch.ebexasoft.fototools.NodeStatus#printValue(java.lang.String)}.
-	 */
-	@Test
-	public void testListTree() {
-		
-		TreeNodeStatus treeStatus = new TreeNodeStatus(testRoot)
-		assertNotNull (System.out)
-		assertTrue (System.out instanceof PrintStream)
-		
-		treeStatus.listTree(System.out)
-	}
-
 	
 	/**
 	 * Test method for {@link ch.ebexasoft.fototools.MyNodeStatus#printValue(java.lang.String)}.
@@ -275,5 +215,35 @@ class NodeStatusTest {
 
     }
 
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatus#combineValue (java.lang.String, java.lang.String)}.
+     */
+    @Test
+    public void testCombineValue () {
+        
+        DirStatus dst = new DirStatus (testRoot)
+        assertNotNull dst
+        
+        dst.combineValue 'key1', 'true'
+        dst.combineValue 'key2', 'true'
+        dst.combineValue 'key3', 'false'
+        dst.combineValue 'key4', 'false'
+        assertEquals 'true', dst.status['key1']
+        assertEquals 'true', dst.status['key2']
+        assertEquals 'false', dst.status['key3']
+        assertEquals 'false', dst.status['key4']
+        
+        dst.combineValue 'key1', 'true'
+        dst.combineValue 'key2', 'false'
+        dst.combineValue 'key3', 'true'
+        dst.combineValue 'key4', 'false'
+        assertEquals 'true', dst.status['key1']
+        assertEquals DirStatus.MIXEDVALUE, dst.status['key2']
+        assertEquals DirStatus.MIXEDVALUE, dst.status['key3']
+        assertEquals 'false', dst.status['key4']
+     
+           
+    }
+        
     
 }
