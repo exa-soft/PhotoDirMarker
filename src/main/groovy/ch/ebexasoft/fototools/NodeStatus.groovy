@@ -153,8 +153,13 @@ class MyNodeStatus extends NodeStatus {
      */	
 	static MyNodeStatus fromDir (File parentDir) {
 		
+        if (!NodeUtils.containsPics(parentDir)) return null
+        
         File statusFile = new File (parentDir, FILENAME)
-        if (!statusFile.exists()) return null
+        if (!statusFile.exists()) {
+            System.err.println "missing status file $FILENAME in ${parentDir.absolutePath}"
+            return null
+        }
         
         def jsonSlurper = new JsonSlurper(type: JsonParserType.LAX)
         def obj = jsonSlurper.parse(statusFile, 'UTF-8')

@@ -4,6 +4,8 @@
 package ch.ebexasoft.fototools
 
 
+import java.io.File;
+
 import groovy.json.JsonOutput
 
 /**
@@ -46,6 +48,22 @@ class NodeUtils {
 		}
 	
 	}
+    
+    
+    /**
+     * Untersucht, ob das Verzeichnis mindestens eine Bild-Datei enthält
+     * (mit Endung aus  jpg|png|gif|bmp , nicht rekursiv).
+     * @param dir   zu durchsuchendes Verzeichnis (File)
+     * @return  true wienn das Verzeichnis min. 1 Bild enthält
+     */
+    static containsPics (File dir) {
+        // have found pattern ([^\s]+(\.(?i)(jpg|png|gif|bmp))$)
+        // in http://www.mkyong.com/regular-expressions/how-to-validate-image-file-extension-with-regular-expression/
+        def found = dir.list().find {
+            it =~ /([^\s]+(\.(?i)(jpg|jpeg|png|gif))$)/
+        }
+        return found    // is true if an image has been found
+    }
 
 	
 }

@@ -43,7 +43,7 @@ assert list.size == 7
  */
 def fotoDirs (String root, Closure closure) { 
 	new File(root).eachDirRecurse() {
-		if (containsPics (it)) {
+		if (NodeUtils.containsPics (it)) {
 			closure.call(it)
 		}
 	}
@@ -60,26 +60,6 @@ println "fotoDirsList has ${fotoDirsList.size} elements"
 assert fotoDirsList.size == 7
 
 def fotoDirsList1 = []
-
-
-/**
- * Untersucht, ob das Verzeichnis mindestens eine Bild-Datei enthält
- * (mit Endung aus  jpg|png|gif|bmp , nicht rekursiv).
- * @param dir	zu durchsuchendes Verzeichnis (File) 
- * @return	true wienn das Verzeichnis min. 1 Bild enthält
- */
-def containsPics (File dir) {
-	// have found pattern ([^\s]+(\.(?i)(jpg|png|gif|bmp))$)
-	// in http://www.mkyong.com/regular-expressions/how-to-validate-image-file-extension-with-regular-expression/
-	def found = dir.list().find {
-		it =~ /([^\s]+(\.(?i)(jpg|jpeg|png|gif))$)/
-	}
-	return found 	// is true if an image has been found
-}
-
-assert (!containsPics (new File("/home/edith/Bilder/noch-sortieren_ist-nicht-hier")))
-assert (!containsPics (new File("/home/edith/Bilder/fürUli")))
-assert (containsPics (new File("/home/edith/Bilder/fürUli/von-Lumix")))
 
 
 /*

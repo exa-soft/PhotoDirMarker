@@ -67,12 +67,19 @@ class DirStatusTree {
                 children.each { childNode ->
                     keys.addAll (childNode.myNodeStatus.status.keySet())
                 }
-                
+                println "$parentDir contains ${keys.size()} keys:"
+                keys.forEach { key ->
+                    println "key $key" 
+                }
+                                    
                 // loop through the keys and collect the values from the children
-                keys.each { key ->
+                keys.forEach { key ->
                     println "collecting values for key '$key'"
-                    children.each { childNode ->
-                        dirStatus.combineValue (key, childNode.myNodeStatus.status[value])
+                    children.forEach { childNode ->
+                        println "processing childNode $childNode \nof class ${childNode.class}"
+                        List st = childNode.myNodeStatus.status
+                        println "have status list $st"
+                        dirStatus.combineValue (key, st[(value)])
                     }
                 }
             }   // if there are children
