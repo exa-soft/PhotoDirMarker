@@ -7,10 +7,12 @@ import static groovy.test.GroovyAssert.assertEquals
 import static groovy.test.GroovyAssert.assertNotNull
 import static groovy.test.GroovyAssert.assertNull
 import static groovy.test.GroovyAssert.assertTrue
-import static groovy.test.GroovyAssert.fail
+import static groovy.test.GroovyAssert.assertFalse
 
+import java.io.File;
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.List;
 
 import org.junit.Before
 import org.junit.Test
@@ -71,7 +73,7 @@ class DirStatusTreeTest {
     /**
      * Is used in the test methods testInitChildren...
      */
-    private void _testInitChildren (File testRoot) {
+    private DirStatusTree _testInitChildren (File testRoot) {
             
         DirStatusTree treeStatus = new DirStatusTree (testRoot)
         assertNotNull(treeStatus)
@@ -82,6 +84,8 @@ class DirStatusTreeTest {
         assertNotNull(treeStatus.children)
         assertTrue (treeStatus.children instanceof List)
         treeStatus.children.each { assertNotNull(it) }
+        
+        return treeStatus
     }
 
     
@@ -91,12 +95,59 @@ class DirStatusTreeTest {
     @Test
     public void testInitChildren1Level () {
         
+        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt'
         File testRoot = new File (testSourcesWork, 'fürUli/gezeigt')
-        assert testRoot.exists()        
-        _testInitChildren(testRoot)
+        assert testRoot.exists()
+        DirStatusTree treeStatus = _testInitChildren(testRoot)
         
-        fail ("compare more values for $testRoot")
-        // TODO compare more values for $testRoot
+        assertNotNull treeStatus
+        assertEquals thisTestDir, treeStatus.parentDir.absolutePath
+        assertNull treeStatus.myNodeStatus
+        
+        assertNotNull treeStatus.dirStatus
+        Map tagValues = treeStatus.dirStatus.status
+        assertNotNull tagValues
+        tagValues.forEach {key, value ->
+            println "key '$key', values '$value'"
+            switch (key) {
+                case "y1y2y3":
+                case "y1y2n3":
+                case "y1y2q3":
+                case "y1y2_3":
+                assertEquals 'true', value
+                break
+
+                case "n1n2y3":
+                case "n1n2n3":
+                case "n1n2q3":
+                case "n1n2_3":
+                    assertEquals 'false', value
+                    break
+
+                case "q1q2y3":
+                case "q1q2n3":
+                case "q1q2q3":
+                case "q1q2_3":
+                    assertEquals '?', value
+                    break            
+            
+                default:
+                    assertEquals 'mixed', value
+                    break
+            }
+            
+        }
+        
+        assertEquals 2, treeStatus.children.size()
+        treeStatus.children.forEach { child ->
+            assertTrue child instanceof DirStatusTree
+            child.parentDir.absolutePath.startsWith thisTestDir
+            assertNotNull child.myNodeStatus
+            assertNull child.dirStatus
+            assertNotNull child.children
+            assertEquals 0, child.children.size()
+        }
+        
     }
 
     /**
@@ -132,7 +183,8 @@ class DirStatusTreeTest {
      */
     @Test
     public void testPrintValue() {
-        
+
+        // TODO move test to work on some other dir (that has a myNodeStatus)         
         DirStatusTree treeStatus = new DirStatusTree (testSourcesWork)
         treeStatus.initChildren()
         assertNotNull(treeStatus.children)
@@ -142,6 +194,7 @@ class DirStatusTreeTest {
             "/home/edith/Bilder/fürUli               : copyright  = true (2016-10-29T18:59:45)",
             treeStatus.printValue("copyright")
         )
+
     }    
 
 }

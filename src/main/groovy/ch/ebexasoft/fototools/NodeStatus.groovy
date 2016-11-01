@@ -1,5 +1,7 @@
 package ch.ebexasoft.fototools
 
+import java.util.Date;
+
 import groovy.json.JsonOutput
 import groovy.json.JsonParserType
 import groovy.json.JsonSlurper
@@ -70,13 +72,23 @@ abstract class NodeStatus {
 		
 		StringWriter writer = new StringWriter()
 		StreamingJsonBuilder builder = new StreamingJsonBuilder(writer)
-        builder {
-			dir parentDir.absolutePath
-			status status
-		}
+        toJsonBuilder builder
 		String json = JsonOutput.prettyPrint(writer.toString())
 	}
-	
+
+    /**
+     * Inner format for JSON. Can be overwritten by subclasses
+     * @param builder 
+     * @return the JSON String (pretty)
+     */
+    def void toJsonBuilder (StreamingJsonBuilder builder) {
+        
+        builder {
+            dir parentDir.absolutePath
+            status status
+        }
+    }
+
 	
 	/**
 	 * Write this node to the given file in JSON format
@@ -115,7 +127,7 @@ abstract class NodeStatus {
     }
 
     def String toString () {
-        "[parentDir=$parentDir, status=$status"
+        "[parentDir=$parentDir,\nstatus=$status"
     }
 
 }
@@ -200,8 +212,12 @@ class DirStatus extends NodeStatus {
     public static final String FILENAME = 'collectedFileStatus.txt'
     public static final String MIXEDVALUE = 'mixed'
     
+    Date creationDate
+    
+
     DirStatus (File parentDir) {
         super(parentDir)
+        creationDate = new Date()
     }
     
     /**
@@ -213,21 +229,56 @@ class DirStatus extends NodeStatus {
         toFile (new File (parentDir, FILENAME))
     }
     
+    /**
+     * Inner format for JSON. Adds date field to the code from superclass
+     * (copy/paste - could not find another way).
+     * @param builder
+     * @return the JSON String (pretty)
+     */
+    def void toJsonBuilder (StreamingJsonBuilder builder) {
+        
+        builder {
+            dir parentDir.absolutePath
+            created this.creationDate
+            status status
+        }
+    }
+    
     /** 
      * Combines vales: when the key does not exist, the value will be 
      * added. If it does exist and has a different value than the one
      * from the parameter, it will be changed to "mixed" (@link #MIXEDVALUE}.
+     * (A value being null thus also ends up in changing the existing value 
+     * to "mixed" if the map previously contained a value other than null.)
      * @param key       the key
      * @param value     the value
      */
     def combineValue (String key, String value) {
         
-        String existingValue = status[key]
-        if (existingValue == null)
+        if (!status.containsKey(key)) {
             status[key] = value
-        else if (!existingValue.equals(value)) {
-            status[key] = MIXEDVALUE
+        }
+        else {
+            Object existingValue = status[key]
+            if (!existingValue.equals(value))
+                status[key] = MIXEDVALUE
         }
     }
+    
+    /**
+     * Same as {@link #combineValue (String, String), but the value parameter can be 
+     * given as array (first element the tag value, second element the date/time).
+     * If values 
+     * @param key       the key
+     * @param values     the value list (tag value, date/time) 
+     */
+    def combineValueList (String key, String[] values) {
+        
+        if (values == null)
+            combineValue (key, null)
+        else
+            combineValue (key, values[0])
+    }
+    
 }
 

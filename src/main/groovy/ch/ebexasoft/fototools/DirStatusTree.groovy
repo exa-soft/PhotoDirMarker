@@ -25,7 +25,6 @@ class DirStatusTree {
     MyNodeStatus myNodeStatus
     DirStatus dirStatus
     List children = null
-
     
     /**
      * 
@@ -64,24 +63,41 @@ class DirStatusTree {
                 // from the children, collect all existing tag keys (we have to
                 // do this because some keys may not be present in all files)
                 Set keys = new HashSet()
-                children.each { childNode ->
-                    keys.addAll (childNode.myNodeStatus.status.keySet())
+                children.forEach { childNode ->
+                    if (childNode.myNodeStatus != null) {
+                        assert childNode.myNodeStatus.status != null
+                        assert childNode.myNodeStatus.status.keySet() != null
+                        keys.addAll (childNode.myNodeStatus.status.keySet())
+                    }
+                    
+                    
                 }
-                println "$parentDir contains ${keys.size()} keys:"
-                keys.forEach { key ->
-                    println "key $key" 
-                }
+//                println "$parentDir contains ${keys.size()} keys:"
+//                keys.forEach { key ->
+//                    println "key $key" 
+//                }
                                     
                 // loop through the keys and collect the values from the children
                 keys.forEach { key ->
                     println "collecting values for key '$key'"
                     children.forEach { childNode ->
-                        println "processing childNode $childNode \nof class ${childNode.class}"
-                        List st = childNode.myNodeStatus.status
-                        println "have status list $st"
-                        dirStatus.combineValue (key, st[(value)])
+                        if (childNode?.myNodeStatus?.status == null) {
+                            println "myNodeStatus.status is null on childNode $childNode"
+                        }
+                        else {
+                            String[] values = childNode?.myNodeStatus?.status[key]
+                            if (values != null) {
+                                println "values for key '$key' are '$values'"
+                                dirStatus.combineValue (key, values[0])
+                            }
+                            else {
+                                println "no value found for key '$key'"
+                                dirStatus.combineValue (key, null)
+                            }
+                        }
                     }
                 }
+                dirStatus.toFile()
             }   // if there are children
            
         }
@@ -112,7 +128,8 @@ class DirStatusTree {
     }  
     
     def String toString () {
-        "[parentDir=$parentDir, myNodeStatus=$myNodeStatus, dirStatus=$dirStatus]"
+        
+        "[parentDir=${parentDir.name},\n    myNodeStatus=$myNodeStatus,\n    dirStatus=$dirStatus]"
     }
 
 }
