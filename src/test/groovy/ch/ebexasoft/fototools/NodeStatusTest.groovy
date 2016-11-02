@@ -51,11 +51,12 @@ class NodeStatusTest {
 		assertTrue (System.out instanceof PrintStream)
 		assertEquals ( 
 '''{
-    "dir": "/home/edith/Bilder/fürUli",
+    "dir": "/home/edith/Bilder/f\u00fcrUli",
     "status": {
         
     }
 }''', json)
+        // TODO why is not stored: "dir": "/home/edith/Bilder/fürUli",
         
         treeStatus.status['name'] = ["true", testDate]
         treeStatus.status['copyright'] = ["false", testDate2]

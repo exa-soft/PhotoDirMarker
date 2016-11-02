@@ -8,6 +8,7 @@ import static groovy.test.GroovyAssert.assertNotNull
 import static groovy.test.GroovyAssert.assertNull
 import static groovy.test.GroovyAssert.assertTrue
 import static groovy.test.GroovyAssert.assertFalse
+import static groovy.test.GroovyAssert.fail
 
 import java.io.File;
 import java.text.DateFormat
@@ -105,6 +106,10 @@ class DirStatusTreeTest {
         assertNull treeStatus.myNodeStatus
         
         assertNotNull treeStatus.dirStatus
+        Date createdDate = treeStatus.dirStatus.creationDate
+        assertNotNull createdDate
+        assertTrue (createdDate - new Date() < 5000)
+        
         Map tagValues = treeStatus.dirStatus.status
         assertNotNull tagValues
         tagValues.forEach {key, value ->
@@ -156,11 +161,54 @@ class DirStatusTreeTest {
     @Test
     public void testInitChildrenMoreLevels () {
 
-        File testRoot = new File (testSourcesWork, 'fürUli')
+        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work'
+        File testRoot = testSourcesWork
         assert testRoot.exists()
-        _testInitChildren(testRoot)
+        DirStatusTree treeStatus = _testInitChildren(testRoot)
         
-        fail ("compare more values for $testRoot")
+        assertNotNull treeStatus
+        assertEquals thisTestDir, treeStatus.parentDir.absolutePath
+        assertNull treeStatus.myNodeStatus
+        
+        assertNotNull treeStatus.dirStatus
+        Date createdDate = treeStatus.dirStatus.creationDate
+        assertNotNull createdDate
+        assertTrue (createdDate - new Date() < 5000)
+        
+        Map tagValues = treeStatus.dirStatus.status
+        assertNotNull tagValues
+        tagValues.forEach {key, value ->
+            println "key '$key', values '$value'"
+            switch (key) {
+                case "y1y2y3":
+                assertEquals 'true', value
+                break
+
+                case "n1n2n3":
+                    assertEquals 'false', value
+                    break
+
+                case "q1q2q3":
+                    assertEquals '?', value
+                    break
+            
+                default:
+                    assertEquals 'mixed', value
+                    break
+            }
+            
+        }
+        
+        assertEquals 1, treeStatus.children.size()
+        assertTrue treeStatus.children[0] instanceof DirStatusTree
+        DirStatusTree child = treeStatus.children[0]
+        child.parentDir.absolutePath.startsWith thisTestDir
+        assertNull child.myNodeStatus
+        assertNotNull child.dirStatus
+        assertNotNull child.children
+        assertEquals 2, child.children.size()
+        
+//        fail "compare more values for $testRoot"
         // TODO compare more values for $testRoot
 
     }
@@ -184,15 +232,20 @@ class DirStatusTreeTest {
     @Test
     public void testPrintValue() {
 
-        // TODO move test to work on some other dir (that has a myNodeStatus)         
-        DirStatusTree treeStatus = new DirStatusTree (testSourcesWork)
+        // TODO move test to work on some other dir (that has a myNodeStatus) 
+        
+        File testRoot = new File (testSourcesWork, 'fürUli/2016Schweden-Makro')
+        assert testRoot.exists()
+        
+        
+        DirStatusTree treeStatus = new DirStatusTree (testRoot)
         treeStatus.initChildren()
         assertNotNull(treeStatus.children)
         
         treeStatus.myNodeStatus.status['copyright'] = ["true", testDate]
         assertEquals (
-            "/home/edith/Bilder/fürUli               : copyright  = true (2016-10-29T18:59:45)",
-            treeStatus.printValue("copyright")
+            "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
+            treeStatus.myNodeStatus.printValue("copyright")
         )
 
     }    

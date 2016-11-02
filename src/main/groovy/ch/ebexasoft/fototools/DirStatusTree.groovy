@@ -49,11 +49,11 @@ class DirStatusTree {
             myNodeStatus = MyNodeStatus.fromDir(parentDir)
 
             // in recursion, first look deeper: collect children
-            children = []
-            parentDir.eachDirRecurse() {
+            this.children = []
+            parentDir.eachDir () {
                 DirStatusTree childStatus = new DirStatusTree (it)
                 childStatus.initChildren ()
-                children.add(childStatus)
+                this.children.add(childStatus)
             }
             println "have children for ${parentDir.absolutePath}"
             
