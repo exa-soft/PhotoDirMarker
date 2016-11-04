@@ -13,11 +13,13 @@ package ch.ebexasoft.fototools
 
 
 // specify parameters
-def cli = new CliBuilder(usage: '''groovy MarkerTool [option] [rootDir] taglist [value]
-    tagList: comma separated list of tags; 
-             if multiple tags, enclose them in double quotation marks: "tag1, another, number3"
-''')
+def cli = new CliBuilder(usage: '''groovy MarkerTool options rootDir taglist [value]
+    tagList: comma separated list of tags; if multiple tags, enclose them in double quotation marks: "tag1, another, number3"
 
+''')
+//def cli = new CliBuilder(usage: 'groovy MarkerTool options rootDir taglist [value]')
+
+cli.width = 75
 // TODO where to include option rootDir?
 cli.i (longOpt: 'init', args: 1, argName: 'taglist', 'initialize non-existing tags (set to "false"), does not change existing values')
 cli.m (longOpt: 'mark', args: 1, argName: 'taglist', 'set given tags to "true" (creating non-existing ones)')
@@ -37,5 +39,30 @@ cli.h (longOpt: 'help', 'display usage')
 
 // parse and process parameters
 def options = cli.parse(args)
+assert options // would be null (false) on failure
 if (options.h) cli.usage()
-else println "Hello ${options.a ? options.a : 'World'}"
+else if (options.arguments().size() < 2) {
+    println "ERROR: missing arguments, required rootDir and taglist"
+    cli.usage()
+}
+else {
+    File rootDir = new File (options.arguments()[0])
+    println "rootDir is ${rootDir.absolutePath}"
+    String[] tags = options.arguments()[1]
+    println "tags:"
+    tags.each {
+        println "- tag '$it'"
+    }
+    
+//    if 
+//    assert options.arguments() == ['*.groovy']
+//    else if (options.c) {
+//        println "will call clear for "
+//    }
+//    else println "Hello ${options.a ? options.a : 'World'}"
+}
+
+
+
+//assert options.a && options.l && options.t
+
