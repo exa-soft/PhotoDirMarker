@@ -12,10 +12,10 @@ import org.junit.Test;
  * @author edith
  *
  */
-class MarkerToolTest {
+class PhodoDirMarkerTest {
 
     public static final String SOURCE_DIR = 'src/main/groovy' 
-    MarkerTool mt
+    PhotoDirMarker mt
     StringWriter stringWriter
     File sourceRoot = new File (SOURCE_DIR)
     
@@ -26,7 +26,7 @@ class MarkerToolTest {
     public void setUp() throws Exception {
         
 //        stringWriter = new StringWriter()
-        mt = new MarkerTool()
+        mt = new PhotoDirMarker()
 //        mt.cli.writer = stringWriter
          
     }
@@ -37,7 +37,7 @@ class MarkerToolTest {
     @Test
     public void testMain() {
         
-        File groovyMarkerSource = new File (sourceRoot, 'ch/ebexasoft/fototools/MarkerTool.groovy')
+        File groovyMarkerSource = new File (sourceRoot, 'ch/ebexasoft/fototools/PhotoDirMarker.groovy')
         String[] args = ['-h']
         mt.run(groovyMarkerSource, args)
         
