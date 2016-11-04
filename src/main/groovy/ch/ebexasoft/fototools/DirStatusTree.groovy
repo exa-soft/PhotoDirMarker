@@ -55,7 +55,7 @@ class DirStatusTree {
                 childStatus.initChildren ()
                 this.children.add(childStatus)
             }
-            println "have children for ${parentDir.absolutePath}"
+//            println "have children for ${parentDir.absolutePath}"
             
             if (!children.empty) {
                 dirStatus = new DirStatus(parentDir)
@@ -79,15 +79,12 @@ class DirStatusTree {
                                     
                 // loop through the keys and collect the values from the children
                 keys.forEach { key ->
-                    println "collecting values for key '$key'"
+//                    println "collecting values for key '$key'"
                     children.forEach { childNode ->
-                        if (childNode?.myNodeStatus?.status == null) {
-                            println "myNodeStatus.status is null on childNode $childNode"
-                        }
-                        else {
+                        if (childNode?.myNodeStatus?.status != null) {
                             String[] values = childNode?.myNodeStatus?.status[key]
                             if (values != null) {
-                                println "values for key '$key' are '$values'"
+//                                println "values for key '$key' are '$values'"
                                 dirStatus.combineValue (key, values[0])
                             }
                             else {
