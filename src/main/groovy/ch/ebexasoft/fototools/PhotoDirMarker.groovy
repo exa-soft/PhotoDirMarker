@@ -1,25 +1,22 @@
 /**
  * 
+ * @author edith
  */
 package ch.ebexasoft.fototools
 
-/**
- * @author edith
- *
- */
 //class PhotoDirMarker {
 //
 //}
 
 
-// specify parameters
+// specify parameters for command-line call
 def cli = new CliBuilder(usage: '''groovy PhotoDirMarker [-d directory] options tags [-v value]
     tags: tag or tags; if multiple tags, separate them with spaces and enclose in double quotation marks: "tag1 another number3"
 
 ''')
 
 cli.width = 100
-// TODO where to include option rootDir?
+
 cli.d (longOpt: 'dir', args: 1, argName: 'directory', 'path to root directory for operation (without -d option, current directory is used)')
 
 cli.i (longOpt: 'init', args: 1, argName: 'tags', 'initialize non-existing tags (set to "false"), does not change existing values')
@@ -60,7 +57,8 @@ else println "will work recursively, starting from '$workdir'"
 // define taglist and value
 def String tags
 def String value
-if (options.i) tags = options.i 
+def overwrite = true
+if (options.i) { tags = options.i; value = 'true'; overwrite = false } 
 if (options.m) { tags = options.m; value = 'true' }
 if (options.u) { tags = options.u; value = 'false' }
 if (options.c) tags = options.c
@@ -93,3 +91,89 @@ taglist.each {
     println "- tag '$it'"
 }
 
+// collect status into object
+
+
+
+
+// call the methods for the options
+
+if (options.p) {
+    print ()
+}
+else {
+    def int countWork = 0
+    switch (options) {
+        case (options.c):
+            clearValue ()
+            break
+        case (options.i):
+        case (options.m):
+        case (options.u):
+        case (options.s):
+        default:
+            setValue ()
+            break        
+    }
+}
+
+
+def print () {
+    // TODO implement print
+}
+
+// TODO convert setting a value or clearing a value to a closure, or use a method parameter, then combine setValue and clearValue methods 
+ 
+// TODO can we convert this to a closure, to call it for each tag separately?
+// TODO should we give rootDir, recursive, tags as parameters into the functions?
+
+
+/**
+ * Set a value recursively. Uses values set in script: 
+ * @param rootDir   rootdir where to start
+ * @param tags      taglist array of tags to work with
+ * @param overwrite true to overwrite existing values, false to keep them
+ * @return      count how many values have been set
+ */
+//private int setValue (File rootDir, boolean recursive, String[] tags, boolean overwrite) {
+int setValue () {
+    
+    if (this.recursive)
+        setValueRecursive (workdir, overwrite)
+    else
+        setValueThisDir (workdir, overwrite)
+}
+
+  
+/**
+ * Set a value recursively 
+ * @param rootDir   rootdir where to start
+ * @param tags      taglist array of tags to work with
+ * @param overwrite true to overwrite existing values, false to keep them
+ * @return      count how many values have been set
+ */
+//private int setValueRecursive (File rootDir, String[] tags, boolean overwrite) {
+private int setValueRecursive (File rootDir, String[] tags, boolean overwrite) {
+    
+    println "setValueRecursive (overwrite=$overwrite) on $rootDir, for tags $tags"
+    
+    // TODO implement, using setValueThisDir (dir, tags, overwrite)
+    
+}
+
+
+/**
+ * Set a value recursively
+ * @param rootDir   rootdir where to start
+ * @param tags      taglist array of tags to work with
+ * @param overwrite true to overwrite existing values, false to keep them
+ * @return      count how many values have been set
+ */
+private int setValueThisDir (File dir, String[] tags, boolean overwrite) {
+    
+    println "setValueThisDir (overwrite=$overwrite) on $dir, for tags $tags"
+    // TODO implement setValueThisDir:
+    // change all tags
+    
+    // write to file
+}
