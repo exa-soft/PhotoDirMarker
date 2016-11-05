@@ -249,7 +249,7 @@ class NodeStatusTest {
 
     /**
      * Test method to work on status with closure
-     * (needs sucess of part of testReadJson_file2Object)
+     * (needs success of part of testReadJson_file2Object)
      */
     @Test
     public void testClosureOnStatus () {
@@ -292,10 +292,40 @@ class NodeStatusTest {
         
 //        { String x, int y ->
 //            println "hey ${x} the value is ${y}"
-//        }
-        
-        
+//        }               
         
     }
+    
+    
+    /**
+     * Test method to work on status with closure
+     * (needs sucess of part of testReadJson_file2Object)
+     */
+    @Test
+    public void testVariousWithClosure () {
+
+        assert [1, 2, 3].find { it > 1 } == 2           // find 1st element matching criteria
+        assert [1, 2, 3].findAll { it > 1 } == [2, 3]   // find all elements matching critieria
+        assert ['a', 'b', 'c', 'd', 'e'].findIndexOf {      // find index of 1st element matching criteria
+            it in ['c', 'e', 'g']
+        } == 2
+
+    
+        String[] tags = ['name', 'copyright', 'keywords']
+        Map someMap = [name: 'true', copyright: 'false', keywords: '?']
+                
+        assert tags.find { it == 'copyright' } == 'copyright'
+        
+        def found = someMap.find { it.key == 'copyright' }
+        assert found instanceof Map.Entry
+        assert found.value == 'false' 
+    
+        def foundValue = someMap.find { 
+            it.key == 'copyright'
+            someMap[]
+        }    
+        
+    }
+
     
 }
