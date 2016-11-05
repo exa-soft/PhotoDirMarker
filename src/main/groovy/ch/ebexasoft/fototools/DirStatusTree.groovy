@@ -63,7 +63,7 @@ class DirStatusTree {
                 // from the children, collect all existing tag keys (we have to
                 // do this because some keys may not be present in all files)
                 Set keys = new HashSet()
-                children.forEach { childNode ->
+                children.each { childNode ->
                     if (childNode.myNodeStatus != null) {
                         assert childNode.myNodeStatus.status != null
                         assert childNode.myNodeStatus.status.keySet() != null
@@ -73,14 +73,14 @@ class DirStatusTree {
                     
                 }
 //                println "$parentDir contains ${keys.size()} keys:"
-//                keys.forEach { key ->
+//                keys.each { key ->
 //                    println "key $key" 
 //                }
                                     
                 // loop through the keys and collect the values from the children
-                keys.forEach { key ->
+                keys.each { key ->
 //                    println "collecting values for key '$key'"
-                    children.forEach { childNode ->
+                    children.each { childNode ->
                         if (childNode?.myNodeStatus?.status != null) {
                             String[] values = childNode?.myNodeStatus?.status[key]
                             if (values != null) {
@@ -123,10 +123,26 @@ class DirStatusTree {
         children.each { it.listTreeInternal(p) }
         p.decrementIndent()
     }  
+
     
+    
+    /**
+     * Traverse the tree of dir status and do something with the tags
+     * @param elements
+     * @param action
+     * @return
+     */
+    def traverse (List elements, Closure action) {
+        def result = []
+        elements.each {
+            result << action(it)
+        }
+        result
+    }
+        
     def String toString () {
         
         "[parentDir=${parentDir.name},\n    myNodeStatus=$myNodeStatus,\n    dirStatus=$dirStatus]"
     }
-
+    
 }

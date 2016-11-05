@@ -99,6 +99,17 @@ abstract class NodeStatus {
 			it.write(toJson())
 		}
 	} 
+
+    /** 
+     * Helper method to do something with all entries in the status map    
+     * @param action    closure to apply to all elements
+     */
+    def list (Closure action) {
+        status.each {
+            action(it)
+        }
+    }
+
     
     /**
      * Helper method to instatiate objects from JSON (via pure Groovy objects).
@@ -245,9 +256,10 @@ class DirStatus extends NodeStatus {
     }
     
     /** 
-     * Combines vales: when the key does not exist, the value will be 
-     * added. If it does exist and has a different value than the one
-     * from the parameter, it will be changed to "mixed" (@link #MIXEDVALUE}.
+     * Combines the given value with the existing ones: when the key does not 
+     * exist, the value will be  added. If it does exist and has a different 
+     * value than the one from the parameter, it will be changed to "mixed" 
+     * (@link #MIXEDVALUE}.
      * (A value being null thus also ends up in changing the existing value 
      * to "mixed" if the map previously contained a value other than null.)
      * @param key       the key
@@ -278,6 +290,14 @@ class DirStatus extends NodeStatus {
             combineValue (key, null)
         else
             combineValue (key, values[0])
+    }
+    
+    /** 
+     * Clears the given key (removes it from the tag list)
+     * @param key       the key
+     */
+    def clearValue (String key) {
+        status.remove(key)
     }
     
 }

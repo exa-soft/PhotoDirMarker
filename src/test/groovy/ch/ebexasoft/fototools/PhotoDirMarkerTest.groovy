@@ -12,7 +12,7 @@ import org.junit.Test;
  * @author edith
  *
  */
-class PhodoDirMarkerTest {
+class PhotoDirMarkerTest {
 
     public static final String SOURCE_DIR = 'src/main/groovy' 
     PhotoDirMarker mt
@@ -39,7 +39,7 @@ class PhodoDirMarkerTest {
         
         File groovyMarkerSource = new File (sourceRoot, 'ch/ebexasoft/fototools/PhotoDirMarker.groovy')
         String[] args = ['-h']
-        mt.run(groovyMarkerSource, args)
+//        mt.run(groovyMarkerSource, args)      // doing this stops hangs execution of JUnit tests 
         
                 
         fail("Not yet implemented"); // TODO

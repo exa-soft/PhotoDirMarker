@@ -246,5 +246,56 @@ class NodeStatusTest {
            
     }
         
+
+    /**
+     * Test method to work on status with closure
+     * (needs sucess of part of testReadJson_file2Object)
+     */
+    @Test
+    public void testClosureOnStatus () {
+
+        assertEquals '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources',
+            resourcesDir.absolutePath
+        File testDir = new File (resourcesDir, 'jsonSource1').absoluteFile
+        assertEquals '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/jsonSource1',
+            testDir.absolutePath
+        
+        MyNodeStatus st = MyNodeStatus.fromDir(testDir)
+        
+        assert st instanceof MyNodeStatus        
+        assert st.status instanceof Map
+        Map sts = st.status
+        assertEquals 2, sts.size()
+        
+        assert sts.keySet().contains('name')
+        def values = sts['name']
+        assertEquals 2, values.size()
+        assertEquals 'true', values[0]
+        
+        assert sts.keySet().contains('copyright')
+        values = sts['copyright']
+        assertEquals 2, values.size()
+        assertEquals 'false', values[0]
+
+        List expectList = []
+        def concatSpecial = { String key, String[] value ->
+            println "concatSpecial: key is $key"
+            println "concatSpecial: key is $key, value is ${value[0]}"
+            expectList.add("hey $key, the value is ${value[0]}")
+        }
+        assert concatSpecial instanceof Closure
+        
+        sts.list (concatSpecial)
+        assertEquals 2, expectList.size()
+        assertEquals "hey name, the value is true", expectList[0]
+        assertEquals "hey copyright, the value is false", expectList[1]
+        
+//        { String x, int y ->
+//            println "hey ${x} the value is ${y}"
+//        }
+        
+        
+        
+    }
     
 }
