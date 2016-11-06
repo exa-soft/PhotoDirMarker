@@ -12,8 +12,7 @@ import java.util.Map;
 class SomeObjectForTesting {
 
 	String name 
-	Map myStatus = new LinkedHashMap ()
-//	File myRoot
+	Map myStatus = [:]     // will create new LinkedHashMap ()
 	
 	/**
 	 * 

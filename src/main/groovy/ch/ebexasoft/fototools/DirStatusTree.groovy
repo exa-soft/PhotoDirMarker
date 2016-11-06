@@ -95,6 +95,7 @@ class DirStatusTree {
                     }
                 }
                 dirStatus.toFile()
+                println "written to file: dirStatus for $parentDir"
             }   // if there are children
            
         }
@@ -125,21 +126,70 @@ class DirStatusTree {
     }  
 
     
-    
     /**
-     * Traverse the tree of dir status and do something with the tags
-     * @param elements
-     * @param action
+     * 
+     * @param key
+     * @param value
+     * @param overwrite
      * @return
      */
-    def traverse (List elements, Closure action) {
-        def result = []
-        elements.each {
-            result << action(it)
-        }
-        result
-    }
+    def setValue (String key, String value, boolean overwrite) {
         
+        if (overwrite)
+            this.traverse (_setValueOverwrite(key, value))
+        else
+            this.traverse (_setValueNew(key, value))
+    }
+
+    
+    // TODO try to use closure as parameter, so we could combine printing and setting values into one structure/function 
+    /**
+     * Traverse the tree of dir status (depth-first) and do something 
+     * with the dirStatus
+     * @param action    a closure working on a DirStatus
+     */
+    def traverse (Closure action) {
+        
+        children.each {
+            if (it.dirStatus) action(it.dirStatus)
+        }
+        action(this.dirStatus)
+    }
+    
+    
+    /**
+     * 
+     * @param key
+     * @param value
+     * @return
+     */
+    private def Closure _setValueOverwrite (String key, String value) {
+        
+        { dirStatus ->
+            dirStatus.status?.put(key, value)
+        }
+    }
+    
+    /**
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    private def Closure _setValueNew (String key, String value) {
+        
+        { dirStatus ->
+            if (!dirStatus.status?.containsKey(key)) {
+                println "list does not contain key $key"
+                dirStatus.status?.put(key, value)
+            }
+        }
+    }
+    
+    
+    /**
+     * String representation of this class
+     */
     def String toString () {
         
         "[parentDir=${parentDir.name},\n    myNodeStatus=$myNodeStatus,\n    dirStatus=$dirStatus]"

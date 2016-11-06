@@ -277,22 +277,7 @@ class NodeStatusTest {
         assertEquals 2, values.size()
         assertEquals 'false', values[0]
 
-        List expectList = []
-        def concatSpecial = { String key, String[] value ->
-            println "concatSpecial: key is $key"
-            println "concatSpecial: key is $key, value is ${value[0]}"
-            expectList.add("hey $key, the value is ${value[0]}")
-        }
-        assert concatSpecial instanceof Closure
         
-        sts.list (concatSpecial)
-        assertEquals 2, expectList.size()
-        assertEquals "hey name, the value is true", expectList[0]
-        assertEquals "hey copyright, the value is false", expectList[1]
-        
-//        { String x, int y ->
-//            println "hey ${x} the value is ${y}"
-//        }               
         
     }
     
@@ -309,7 +294,6 @@ class NodeStatusTest {
         assert ['a', 'b', 'c', 'd', 'e'].findIndexOf {      // find index of 1st element matching criteria
             it in ['c', 'e', 'g']
         } == 2
-
     
         String[] tags = ['name', 'copyright', 'keywords']
         Map someMap = [name: 'true', copyright: 'false', keywords: '?']
@@ -320,12 +304,40 @@ class NodeStatusTest {
         assert found instanceof Map.Entry
         assert found.value == 'false' 
     
-        def foundValue = someMap.find { 
-            it.key == 'copyright'
-            someMap[]
-        }    
+        Map map1 = [y1y2: 'tru', y1n2: 'tru', n1y2: 'fals', n1n2: 'fals']
+        Map map2 = [y1y2: 'tru', y1n2: 'fals', n1y2: 'tru', n1n2: 'fals']
+        
+        List maps = [map1, map2]
+        assert maps[0].y1n2 == 'tru'
+        assert maps[1].y1n2 == 'fals'
+        
+        // test to get all values for one key and compare them
+        List only1Tag = maps.collect { it.get('y1n2') }
+        boolean b2 = only1Tag.every { it == only1Tag[0] }
+        assertEquals 2, only1Tag.size()
+        assert ['tru', 'fals'] == only1Tag
+        assert !b2
+        only1Tag = maps.collect { it.get('n1n2') }
+        b2 = only1Tag.every { it == only1Tag[0] }
+        assertEquals 2, only1Tag.size()
+        assert ['fals', 'fals'] == only1Tag
+        assert b2
+        
+        // test to change all values for one key 
+        
+        maps.each { map ->
+            map.put 'y1n2', 'newValue'
+        }
+        assert ['newValue', 'newValue'] == maps.collect { it.get('y1n2') }
+        
+//        def getFromMap = { Collection keys, Map map, String s -> 
+//            map.findAll keys
+//        }
+//        def getFromStatus (Collection keys) = someMap.find {
+//            
+//        }
         
     }
-
+    
     
 }

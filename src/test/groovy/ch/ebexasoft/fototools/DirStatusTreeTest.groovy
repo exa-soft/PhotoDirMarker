@@ -66,8 +66,8 @@ class DirStatusTreeTest {
         assertNull treeStatus.myNodeStatus
         assertNull treeStatus.dirStatus
         assertNull treeStatus.children
-    
-        // TODO should init be done automatically?
+        
+        // LATER should init be done automatically?
     }
 
 
@@ -155,6 +155,7 @@ class DirStatusTreeTest {
         
     }
 
+    
     /**
      * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#initChildren()}.
      */
@@ -174,7 +175,9 @@ class DirStatusTreeTest {
         Date createdDate = treeStatus.dirStatus.creationDate
         assertNotNull createdDate
         assertTrue (createdDate - new Date() < 5000)
-        
+                
+        // TODO find out why file in /work is empty
+
         Map tagValues = treeStatus.dirStatus.status
         assertNotNull tagValues
         tagValues.forEach {key, value ->
@@ -207,6 +210,8 @@ class DirStatusTreeTest {
         assertNotNull child.dirStatus
         assertNotNull child.children
         assertEquals 2, child.children.size()
+        
+        
         
 //        fail "compare more values for $testRoot"
         // TODO compare more values for $testRoot
@@ -249,5 +254,85 @@ class DirStatusTreeTest {
         )
 
     }    
+
+
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#traverse()}.
+     * Depends on testInitChildrenMoreLevels
+     */
+    @Test
+    public void testTraverse () {
+        
+        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work'
+        File testRoot = testSourcesWork
+        assert testRoot.exists()
+        DirStatusTree treeStatus = _testInitChildren(testRoot)
+        
+        // test traverse with printing
+        def printClosure = { dirStatus ->
+            println "this is DirStatus from ${dirStatus.parentDir}" 
+        }
+        treeStatus.traverse (printClosure)
+
+                
+        // test traverse with changing value
+        def changeValueClosure = { dirStatus ->
+            dirStatus.status?.put('y1n2', 'changed')
+        }
+        treeStatus.traverse (changeValueClosure)
+        assert treeStatus.dirStatus.status.y1n2 == 'changed'
+        treeStatus.children.each { child ->
+            assert child.dirStatus.status.y1n2 == 'changed'
+        }
+
+        // test traverse with new value
+        def addValueClosure = { dirStatus ->
+            dirStatus.status?.put('someNew', 'newValue')
+        }
+        treeStatus.traverse (addValueClosure)
+        assert treeStatus.dirStatus.status.someNew == 'newValue'
+        treeStatus.children.each { child ->
+            assert child.dirStatus.status.someNew == 'newValue'
+        }
+        
+    }
+        
+
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#setValue()}.
+     * Depends on testInitChildrenMoreLevels
+     */
+    @Test
+    public void testSetValue () {
+        
+        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work'
+        File testRoot = testSourcesWork
+        assert testRoot.exists()
+        DirStatusTree treeStatus = _testInitChildren(testRoot)
+        
+        // overwrite existing value
+        treeStatus.setValue('y1y2y3', 'newValue', true)
+        assert treeStatus.dirStatus.status.y1y2y3 == 'newValue'
+        treeStatus.children.each { child ->
+            assert child.dirStatus.status.y1y2y3 == 'newValue'
+        }
+
+        // existing value, do not overwrite
+        treeStatus.setValue('n1n2n3', 'someNew', false)
+        assert treeStatus.dirStatus.status.n1n2n3 == 'false'
+        treeStatus.children.each { child ->
+            assert child.dirStatus.status.n1n2n3 == 'false'
+        }
+
+        // add new value
+        assert treeStatus.dirStatus.status['_1y2'] == null
+        treeStatus.setValue('_1y2', 'someNew', false)
+        assert treeStatus.dirStatus.status['_1y2'] == 'someNew'
+        treeStatus.children[0].dirStatus.status['_1y2'] == 'someNew'
+        treeStatus.children[1].dirStatus.status['_1y2'] == 'true'
+
+    }
+        
+
 
 }

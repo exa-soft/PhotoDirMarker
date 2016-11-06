@@ -24,7 +24,7 @@ abstract class NodeStatus {
 	 * list, with the value for the tag as first element, the date/time
 	 * when it has been set as the second element. 
 	 */
-	Map status = new LinkedHashMap ()
+	Map status = [:] // will create new LinkedHashMap ()
 	
 //	assert myStatus instanceof java.util.LinkedHashMap
 //	def colors = [red: '#FF0000', green: '#00FF00', blue: '#0000FF']
