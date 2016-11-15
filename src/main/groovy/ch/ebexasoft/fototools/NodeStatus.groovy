@@ -267,11 +267,11 @@ class DirStatus extends NodeStatus {
      */
     def combineValue (String key, String value) {
         
-        if (!status.containsKey(key)) {
+        if (!status.containsKey(key)) { 
             status[key] = value
         }
         else {
-            Object existingValue = status[key]
+            String existingValue = status[key]
             if (!existingValue.equals(value))
                 status[key] = MIXEDVALUE
         }

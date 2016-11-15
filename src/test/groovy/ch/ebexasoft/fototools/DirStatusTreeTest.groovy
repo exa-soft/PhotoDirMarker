@@ -175,12 +175,21 @@ class DirStatusTreeTest {
         Date createdDate = treeStatus.dirStatus.creationDate
         assertNotNull createdDate
         assertTrue (createdDate - new Date() < 5000)
-                
+        
         // TODO find out why file in /work is empty
 
-        Map tagValues = treeStatus.dirStatus.status
-        assertNotNull tagValues
-        tagValues.forEach {key, value ->
+        Map tagMap = treeStatus.dirStatus.status
+        assertNotNull tagMap
+        
+        def expectedTags = [
+            'y1y2y3', 'y1y2n3', 'y1y2q3', 'y1y2_3', 'y1n2', 'y1_2', 'y1q2',
+            'n1y2', 'n1n2y3', 'n1n2n3', 'n1n2q3', 'n1n2_3', 'n1_2', 'n1q2',
+            'q1y2', 'q1n2', 'q1_2', 'q1q2y3', 'q1q2n3', 'q1q2q3', 'q1q2_3',
+            '_1y2', '_1n2', '_1q2', '_1_2y3', '_1_2n3', '_1_2q3']
+        assert expectedTags.containsAll(tagMap.keySet())
+        assert tagMap.keySet().containsAll(expectedTags)
+
+        tagMap.forEach {key, value ->
             println "key '$key', values '$value'"
             switch (key) {
                 case "y1y2y3":
@@ -305,10 +314,16 @@ class DirStatusTreeTest {
     @Test
     public void testSetValue () {
         
-        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work'
+        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli'
         File testRoot = testSourcesWork
         assert testRoot.exists()
         DirStatusTree treeStatus = _testInitChildren(testRoot)
+
+        // test values 
+        Map parentSt = treeStatus.dirStatus.status
+        assertProperty (parentSt, 'y1y2y3', 'true')
+        assertProperty (parentSt, 'n1n2n3', 'false')
+        
         
         // overwrite existing value
         treeStatus.setValue('y1y2y3', 'newValue', true)
@@ -319,9 +334,9 @@ class DirStatusTreeTest {
 
         // existing value, do not overwrite
         treeStatus.setValue('n1n2n3', 'someNew', false)
-        assert treeStatus.dirStatus.status.n1n2n3 == 'false'
+        assert treeStatus.dirStatus.status.n1n2n3 == false
         treeStatus.children.each { child ->
-            assert child.dirStatus.status.n1n2n3 == 'false'
+            assert child.dirStatus.status.n1n2n3 == false
         }
 
         // add new value
@@ -333,6 +348,9 @@ class DirStatusTreeTest {
 
     }
         
-
+    def assertProperty (Map map, String key, String expected) {
+        assert map.hasProperty(key)
+        assert map.get(key) == expected
+    }
 
 }

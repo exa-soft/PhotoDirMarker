@@ -31,6 +31,7 @@ class DirStatusTree {
      */
     public DirStatusTree(File parentDir) {
         this.parentDir = parentDir
+//        println "created new DirStatusTree object for $parentDir"
     }
     
     /**
@@ -47,6 +48,7 @@ class DirStatusTree {
 
             // read info for the current dir (this is non-recursive)
             myNodeStatus = MyNodeStatus.fromDir(parentDir)
+            println "initialized myNodeStatus for $parentDir: $myNodeStatus"
 
             // in recursion, first look deeper: collect children
             this.children = []
@@ -55,43 +57,50 @@ class DirStatusTree {
                 childStatus.initChildren ()
                 this.children.add(childStatus)
             }
-//            println "have children for ${parentDir.absolutePath}"
+//            println "added status objects for all children of ${parentDir.absolutePath}"
             
             if (!children.empty) {
-                dirStatus = new DirStatus(parentDir)
+                this.dirStatus = new DirStatus(parentDir)
                 
                 // from the children, collect all existing tag keys (we have to
                 // do this because some keys may not be present in all files)
                 Set keys = new HashSet()
                 children.each { childNode ->
+                    // collect keys from both dirStatus and myNodeStatus
+                    if (childNode.dirStatus != null) {
+//                        println "childNode ${childNode.parentDir} has a dirStatus, collecting its keys"
+                        keys.addAll (childNode.dirStatus.status.keySet())
+                    }
                     if (childNode.myNodeStatus != null) {
-                        assert childNode.myNodeStatus.status != null
-                        assert childNode.myNodeStatus.status.keySet() != null
+//                        println "childNode ${childNode.parentDir} has a myNodeStatus, collecting its keys"
                         keys.addAll (childNode.myNodeStatus.status.keySet())
                     }
-                    
-                    
                 }
-//                println "$parentDir contains ${keys.size()} keys:"
+                println "all children of $parentDir combined have ${keys.size()} keys"
 //                keys.each { key ->
-//                    println "key $key" 
+//                    println "- key $key" 
 //                }
-                                    
-                // loop through the keys and collect the values from the children
+                
+                // loop through the keys and collect the values from the children's dirStatus and my own myNodeStatus
                 keys.each { key ->
-//                    println "collecting values for key '$key'"
+                    println "collecting values for key '$key'"
                     children.each { childNode ->
-                        if (childNode?.myNodeStatus?.status != null) {
-                            String[] values = childNode?.myNodeStatus?.status[key]
-                            if (values != null) {
-//                                println "values for key '$key' are '$values'"
-                                dirStatus.combineValue (key, values[0])
-                            }
-                            else {
-                                println "no value found for key '$key'"
-                                dirStatus.combineValue (key, null)
-                            }
+                        if (childNode.dirStatus?.status != null) {
+//                            println "childNode ${childNode.parentDir} has a dirStatus, will combine its values"
+                            String value = childNode.dirStatus?.status[key]
+                            dirStatus.combineValue (key, value)     // values in dirStatus are only Strings (true, false, etc.)
                         }
+                        else {
+//                            println "childNode ${childNode.parentDir} has no dirStatus, will combine values from myNodeStatus"
+                            String[] values = childNode.myNodeStatus?.status[key]     // values in myNodeStatus are String[] (first value true, false, etc., second value timestamp)
+                            dirStatus.combineValue (key, (values != null ? values[0] : null))
+                        }
+                    }
+                    // combine my own status
+                    if (myNodeStatus != null) {
+                        String[] values = myNodeStatus.status[key]
+//                        if (values == null) println "myNodeStatus for $parentDir has no value for key $key"
+                        dirStatus.combineValue (key, (values != null ? values[0] : null))
                     }
                 }
                 dirStatus.toFile()
