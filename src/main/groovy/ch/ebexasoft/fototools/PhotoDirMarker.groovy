@@ -85,41 +85,57 @@ if (!tags) {
     System.exit(-15)
 
 }
-String[] taglist = tags.split()
+def String[] taglist = tags.split()
 println "will run for the following tags: "
 taglist.each {
     println "- tag '$it'"
 }
 
 // collect status into object
-
-
+def DirStatusTree dirStatusTree = new DirStatusTree(workdir)
+dirStatusTree.initChildren()
+println "collected status of ${workdir.absolutePath}"
 
 
 // call the methods for the options
 
 if (options.p) {
-    print ()
+    println "will print for the following tags: "
+    taglist.each {
+        println "- tag '$it'"
+    }
+    print (dirStatusTree, taglist)
 }
 else {
     def int countWork = 0
     switch (options) {
         case (options.c):
-            clearValue ()
+            clearValue (dirStatusTree, taglist)
+            dirStatusTree.writeAllFiles()
             break
         case (options.i):
         case (options.m):
         case (options.u):
         case (options.s):
         default:
-            setValue ()
+            def count = setValue (dirStatusTree, taglist, value)
+            println "worked on $count tags: set '$value' to the following tags: '$tags'"
+            dirStatusTree.writeAllFiles()
             break        
     }
 }
 
-
-def print () {
-    // TODO implement print
+/**
+ * Prints the status of the tags in tagList
+ * LATER print only as deep as necessary (such as not to print "mixed") 
+ * @param statusTree
+ * @param tags
+ */
+def print (DirStatusTree statusTree, String[] tags) {
+    
+    for (tagName in tags) {
+        statusTree.print (tags)
+    }
 }
 
 // TODO convert setting a value or clearing a value to a closure, or use a method parameter, then combine setValue and clearValue methods 
@@ -130,18 +146,19 @@ def print () {
 
 /**
  * Set a value recursively. Uses values set in script: 
- * @param rootDir   rootdir where to start
+ * dirStatusTree object to work on
  * @param tags      taglist array of tags to work with
  * @param overwrite true to overwrite existing values, false to keep them
  * @return      count how many values have been set
  */
-//private int setValue (File rootDir, boolean recursive, String[] tags, boolean overwrite) {
-int setValue () {
+def int setValue (DirStatusTree statusTree, String[] tags, String value) {
     
-    if (this.recursive)
-        setValueRecursive (workdir, overwrite)
-    else
-        setValueThisDir (workdir, overwrite)
+    int count = 0
+    for (tagName in tags) {
+        statusTree.setValue (tagName, value, true)   // true to overwrite
+        count++
+    }
+    return count
 }
 
   

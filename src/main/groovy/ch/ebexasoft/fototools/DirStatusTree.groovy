@@ -24,7 +24,7 @@ class DirStatusTree {
     File parentDir
     MyNodeStatus myNodeStatus
     DirStatus dirStatus
-    List children = null
+    List children = null // contains DirStatusTree objects
     
     /**
      * 
@@ -48,7 +48,7 @@ class DirStatusTree {
 
             // read info for the current dir (this is non-recursive)
             myNodeStatus = MyNodeStatus.fromDir(parentDir)
-            println "initialized myNodeStatus for $parentDir: $myNodeStatus"
+//            println "initialized myNodeStatus for $parentDir: $myNodeStatus"
 
             // in recursion, first look deeper: collect children
             this.children = []
@@ -83,7 +83,7 @@ class DirStatusTree {
                 
                 // loop through the keys and collect the values from the children's dirStatus and my own myNodeStatus
                 keys.each { key ->
-                    println "collecting values for key '$key'"
+//                    println "collecting values for key '$key'"
                     children.each { childNode ->
                         if (childNode.dirStatus?.status != null) {
 //                            println "childNode ${childNode.parentDir} has a dirStatus, will combine its values"
@@ -135,57 +135,92 @@ class DirStatusTree {
     }  
 
     
+    // LATER set multiple values in one go?
     /**
-     * 
+     * Set a value on the tree (recursively)
      * @param key
      * @param value
      * @param overwrite
-     * @return
      */
     def setValue (String key, String value, boolean overwrite) {
         
         if (overwrite)
-            this.traverse (_setValueOverwrite(key, value))
+            this.traverseDirStatus (_setValueOverwrite2DirStatus(key, value))
         else
-            this.traverse (_setValueNew(key, value))
+            this.traverseDirStatus (_setValueNew2DirStatus(key, value))
     }
 
     
-    // TODO try to use closure as parameter, so we could combine printing and setting values into one structure/function 
+    /**
+     * Prints the status for the given keys
+     * @param keys
+     */
+    def print (String[] keys) {
+        
+        this.traverseDirStatus (_print (keys))
+    }
+
+    /**
+     * Writes all dirStatus objects to their files (recursively)
+     * @return
+     */
+    def writeAllFiles () {
+        
+        this.traverseTree (_toFile())
+    }
+
+    
+    // TODO also create a traversal of the tree itself (DirStatusTree objects), not on the DirStatus objects
+    // Use that for setting values (also set values to myNodeStatus, and also save those objects) 
     /**
      * Traverse the tree of dir status (depth-first) and do something 
      * with the dirStatus
      * @param action    a closure working on a DirStatus
      */
-    def traverse (Closure action) {
+    def traverseDirStatus (Closure action) {
         
         children.each {
-            if (it.dirStatus) action(it.dirStatus)
+            traverseDirStatus (action(it))
+//            if (it.dirStatus) action(it.dirStatus)
         }
         action(this.dirStatus)
     }
-    
+
+    /**
+     * Traverse the tree of DirStatusTree objects (depth-first) and do something
+     * with the dirStatusTree or its sub-objects (myNodeStatus, dirStatus)
+     * @param action    a closure working on a DirStatusTree
+     */
+    def traverseTree (Closure action) {
+        
+        children.each {
+            traverseTree (action(it))
+        }
+        action(this)
+    }
+
     
     /**
-     * 
+     * Works on a DirStatus and sets a value (overwrite if existing)
      * @param key
      * @param value
      * @return
      */
-    private def Closure _setValueOverwrite (String key, String value) {
+    private def Closure _setValueOverwrite2DirStatus (String key, String value) {
         
         { dirStatus ->
             dirStatus.status?.put(key, value)
         }
     }
     
+    
     /**
-     *
+     * Works on a DirStatus and sets a value (only if it does not exist)
      * @param key
      * @param value
      * @return
      */
-    private def Closure _setValueNew (String key, String value) {
+    private def Closure _setValueNew2DirStatus (String key, String value) {
         
         { dirStatus ->
             if (!dirStatus.status?.containsKey(key)) {
@@ -194,7 +229,59 @@ class DirStatusTree {
             }
         }
     }
+
     
+    /**
+     *
+     * @param keys  array of keys to print
+     * @return
+     */
+    private def Closure _print (String[] keys) {
+        
+        { dirStatus ->
+            for (key in keys) {
+                String value = dirStatus.status?.get(key) 
+                if (value == null) {
+                    printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])                
+                    // TODO do not continue (how?)
+                }
+                else if (value in ['true', 'false', '?']) {
+                    printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
+                    // TODO do not continue (how?)
+                }
+                else {
+                    // TODO continue recursively (this will be done because this function will be called through traverse)
+                    printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
+                    
+                }
+            }
+        }
+    }
+
+    
+    /**
+     * Works on a DirStatusTree object and writes the status of its objects to files  
+     * (both DirStatus and MyNodeStatus objects)
+     * @param key
+     * @param value
+     * @return
+     */
+    private def Closure _toFile () {
+        
+        { treeObj ->
+//            println "working on tree object for ${treeObj.parentDir}"
+            if (treeObj.myNodeStatus) {
+                treeObj.myNodeStatus.toFile()
+                println "written status to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
+            }
+            if (treeObj.dirStatus) {
+                treeObj.dirStatus.toFile()
+                println "written status to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
+            }            
+        }
+    }
+    
+
     
     /**
      * String representation of this class

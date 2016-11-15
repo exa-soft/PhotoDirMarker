@@ -281,14 +281,14 @@ class DirStatusTreeTest {
         def printClosure = { dirStatus ->
             println "this is DirStatus from ${dirStatus.parentDir}" 
         }
-        treeStatus.traverse (printClosure)
+        treeStatus.traverseDirStatus (printClosure)
 
                 
         // test traverse with changing value
         def changeValueClosure = { dirStatus ->
             dirStatus.status?.put('y1n2', 'changed')
         }
-        treeStatus.traverse (changeValueClosure)
+        treeStatus.traverseDirStatus (changeValueClosure)
         assert treeStatus.dirStatus.status.y1n2 == 'changed'
         treeStatus.children.each { child ->
             assert child.dirStatus.status.y1n2 == 'changed'
@@ -298,7 +298,7 @@ class DirStatusTreeTest {
         def addValueClosure = { dirStatus ->
             dirStatus.status?.put('someNew', 'newValue')
         }
-        treeStatus.traverse (addValueClosure)
+        treeStatus.traverseDirStatus (addValueClosure)
         assert treeStatus.dirStatus.status.someNew == 'newValue'
         treeStatus.children.each { child ->
             assert child.dirStatus.status.someNew == 'newValue'
@@ -321,35 +321,42 @@ class DirStatusTreeTest {
 
         // test values 
         Map parentSt = treeStatus.dirStatus.status
-        assertProperty (parentSt, 'y1y2y3', 'true')
-        assertProperty (parentSt, 'n1n2n3', 'false')
+        assertContains (parentSt, 'y1y2y3', 'true')
+        assertContains (parentSt, 'n1n2n3', 'false')
         
         
-        // overwrite existing value
+        // overwrite existing value (last param true)
         treeStatus.setValue('y1y2y3', 'newValue', true)
         assert treeStatus.dirStatus.status.y1y2y3 == 'newValue'
         treeStatus.children.each { child ->
-            assert child.dirStatus.status.y1y2y3 == 'newValue'
+            assert child.dirStatus
+            assert child.dirStatus.status
+            assert child.dirStatus?.status.y1y2y3 == 'newValue'
         }
 
-        // existing value, do not overwrite
+        // existing value, do not overwrite (last param false)
         treeStatus.setValue('n1n2n3', 'someNew', false)
-        assert treeStatus.dirStatus.status.n1n2n3 == false
+        assert treeStatus.dirStatus.status.n1n2n3 == 'false'
         treeStatus.children.each { child ->
-            assert child.dirStatus.status.n1n2n3 == false
+            assert child.dirStatus
+            assert child.dirStatus.status
+            assert child.dirStatus.status.n1n2n3 == 'false'
         }
 
         // add new value
-        assert treeStatus.dirStatus.status['_1y2'] == null
-        treeStatus.setValue('_1y2', 'someNew', false)
-        assert treeStatus.dirStatus.status['_1y2'] == 'someNew'
-        treeStatus.children[0].dirStatus.status['_1y2'] == 'someNew'
-        treeStatus.children[1].dirStatus.status['_1y2'] == 'true'
-
+        String newKey = '_4'
+        String newValue = 'someNew'
+        assert treeStatus.dirStatus.status[newKey] == null
+        treeStatus.setValue(newKey, newValue, false)
+        assert treeStatus.dirStatus.status[newKey] == newValue
+        assertEquals 1, treeStatus.children.size() 
+        treeStatus.children.each { child ->
+            assert child.dirStatus.status[newKey] == newValue
+        }
     }
         
-    def assertProperty (Map map, String key, String expected) {
-        assert map.hasProperty(key)
+    def assertContains (Map map, String key, String expected) {
+        assert map.containsKey(key)
         assert map.get(key) == expected
     }
 
