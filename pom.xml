@@ -1,58 +1,275 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ <modelVersion>4.0.0</modelVersion>
+
+ <groupId>ch.ebexasoft.fototools</groupId>
+ <artifactId>PhotoDirMarker</artifactId>
+ <version>0.0.1-SNAPSHOT</version>
+
+ <name>PhotoDirMarker</name>
+ <url>https://github.com/exa-soft/${path.sites}</url>
+ <description>
+  Sets tags to directories to keep track of photo info.
+ </description>
+
+ <properties>
+  <maven.compiler.source>1.8</maven.compiler.source>
+  <maven.compiler.target>1.8</maven.compiler.target>
+
+  <parentproject.shortname>ImageTools</parentproject.shortname>
+  <parentproject.name>Image Tools</parentproject.name>
+  <subproject.shortname>PhotoDirMarker</subproject.shortname>
+  <subproject.name>PhotoDir Marker</subproject.name>
+
+  <!-- specify groupId followed by artifactId, replacing '.' by '/' -->
+  <path.artifact>ch.ebexasoft.fototools/photodir-marker</path.artifact>
+
+  <!-- Usually there is no need to change the variables below. If your project
+    uses different paths for Git and Sites, you may introduce additional variables
+    (e.g. parentprojectShortnameLowcase and/or subprojectShortnameLC) and use
+    them in pathSites and pathGit below. -->
+  <path.sites>${subproject.shortname}</path.sites>
+  <path.git>${subproject.shortname}</path.git>
+  <!-- 
+  <path.git>${parentproject.shortname}/${subproject.shortname}</path.git>
+  <path.sites>${parentproject.shortname}/${subproject.shortname}</path.sites> 
+  -->
+ </properties>
+
+ <!-- do not change parent -->
+ <parent>
+  <groupId>ch.ebexasoft</groupId>
+  <artifactId>corporate-pom</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <relativePath>../../ebEXAbase/CorporatePOM</relativePath>
+ </parent>
+
+ <dependencies>
+  <dependency>
+   <groupId>commons-cli</groupId>
+   <artifactId>commons-cli</artifactId>
+   <version>1.3.1</version>
+  </dependency>
   
-  <groupId>ch.ebexasoft.fototools</groupId>
-  <artifactId>PhotoDirMarker</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <dependency>
+   <groupId>org.codehaus.groovy</groupId>
+   <artifactId>groovy-groovydoc</artifactId>
+   <version>2.4.8</version>
+   <scope>provided</scope>
+  </dependency>
   
-  <name>PhotoDirMarker</name>
-  <description>sets tags to directories to keep track of photo info</description>
-  
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
-  
-  <build>
-    <sourceDirectory>src/main/groovy</sourceDirectory>
-    <testSourceDirectory>src/test/groovy</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <excludes>
-          <exclude>**/*.groovy</exclude>
-        </excludes>
-      </resource>
-    </resources>
-    <testResources>
-      <testResource>
-        <directory>src/test/resources</directory>
-        <excludes>
-          <exclude>**/*.groovy</exclude>
-        </excludes>
-      </testResource>
-    </testResources>
+  <dependency>
+   <groupId>org.codehaus.groovy</groupId>
+   <artifactId>groovy-ant</artifactId>
+   <version>2.4.8</version>
+   <scope>provided</scope>
+  </dependency>
+
+ </dependencies>
+
+ <developers>
+  <!-- List the core committers -->
+  <developer>
+   <id>Bie</id>
+   <name>Edith Birrer</name>
+   <organization>ebEXAsoft</organization>
+   <organizationUrl>http://www.edith-birrer.ch</organizationUrl>
+   <roles>
+    <role>Developer</role>
+   </roles>
+   <timezone>+1</timezone>
+   <properties>
+    <!-- <picUrl>http://www.ihomelab.ch/uploads/RTEmagicC_Birrer_Edith_A.jpg.jpg</picUrl> -->
+    <skype>edith.birrer1</skype>
+   </properties>
+  </developer>
+ </developers>
+
+ <contributors>
+ <!-- list the contributors. Same format as developers, but no id! -->
+ <!--
+   <contributor>
+     <name></name>
+     <roles>
+     <role></role>
+     </roles>
+     <timezone>+1</timezone>
+   </contributor>
+ -->
+ </contributors>
+
+
+ <build>
+  <sourceDirectory>src/main/groovy</sourceDirectory>
+  <testSourceDirectory>src/test/groovy</testSourceDirectory>
+  <resources>
+   <resource>
+    <directory>src/main/resources</directory>
+    <excludes>
+     <exclude>**/*.groovy</exclude>
+    </excludes>
+   </resource>
+  </resources>
+  <testResources>
+   <testResource>
+    <directory>src/test/resources</directory>
+    <excludes>
+     <exclude>**/*.groovy</exclude>
+    </excludes>
+   </testResource>
+  </testResources>
+
+  <plugins>
+   <plugin>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.5.1</version>
+    <configuration>
+     <source />
+     <target />
+    </configuration>
+   </plugin>
+
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-antrun-plugin</artifactId>
+    <version>1.7</version>
+    <executions>
+     <execution>
+      <id>groovydoc</id>
+      <phase>site</phase>
+      <goals>
+       <goal>run</goal>
+      </goals>
+      <configuration>
+       <target>
+        <taskdef name="groovydoc" classname="org.codehaus.groovy.ant.Groovydoc"
+         classpathref="maven.compile.classpath" />
+        <groovydoc destdir="${project.reporting.outputDirectory}/groovydoc"
+         sourcepath="${basedir}/src/main/groovy" use="true" windowtitle="${project.name}"
+         doctitle="${project.name}">
+         <link packages="java.,org.xml.,javax.,org.xml."
+          href="http://download.oracle.com/javase/6/docs/api" />
+         <link packages="org.apache.tools.ant." href="http://evgeny-goldin.org/javadoc/ant/api" />
+         <link packages="org.junit.,junit.framework."
+          href="http://kentbeck.github.com/junit/javadoc/latest" />
+         <link packages="groovy.,org.codehaus.groovy." href="http://groovy.codehaus.org/api/" />
+         <link packages="org.codehaus.gmaven." href="http://evgeny-goldin.org/javadoc/gmaven" />
+        </groovydoc>
+       </target>
+      </configuration>
+     </execution>
+    </executions>
+   </plugin>
+
+  </plugins>
+
+  <pluginManagement>
+   <plugins>
+   
+    <plugin>
+     <groupId>org.apache.maven.plugins</groupId>
+     <artifactId>maven-jar-plugin</artifactId>
+     <configuration>
+      <archive>
+       <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+      </archive>
+     </configuration>
+    </plugin>
     
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <source/>
-          <target/>
-        </configuration>
-      </plugin>
-    </plugins>
+    <!--
+    <plugin>
+     <groupId>org.apache.maven.plugins</groupId>
+     <artifactId>maven-surefire-plugin</artifactId>
+     <configuration>            
+      <testFailureIgnore>true</testFailureIgnore>  
+      <excludes>
+       <exclude>**/TestCircle.java</exclude>
+      </excludes>
+     </configuration>
+    </plugin>
+    -->
     
-  </build>
+   </plugins>
+  </pluginManagement>
+
+ </build>
+
+ 
+ <dependencyManagement>
+ 
+ </dependencyManagement>
+
+ <reporting>
+  <plugins>
   
-  <dependencies>
-   <dependency>
-     <groupId>commons-cli</groupId>
-     <artifactId>commons-cli</artifactId>
-     <version>1.3.1</version>
-    </dependency>
-    
-  </dependencies>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-javadoc-plugin</artifactId>
+    <configuration>
+     <links>
+      <!-- if your Javadoc should contain links to other Javadocs, insert 
+       their links below, for example <link>http://project-output.ihomelab.local/sites/${parentproject.shortname}/SomeOtherSubproject/apidocs/</link> -->
+     </links>
+    </configuration>
+   </plugin>
+
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-changelog-plugin</artifactId>
+    <!--  add empty report set to prevent plugin from running -->
+    <reportSets>
+     <reportSet>
+      <reports></reports>
+     </reportSet>
+    </reportSets>
+   </plugin>
   
+  </plugins>
+ </reporting>
+
+
+  <!-- *********************************************************************
+    Do not change below! This part must be copied to all projects (even if your
+    project has child projects - this part can not be inherited! Paths are wrong
+    in the child project when they are evaluated for parent)
+  -->
+
+  
+  <distributionManagement>
+    <site>
+      <id>snapshot-site</id>
+      <name>${parentproject.name} ${subproject.name} Website</name>
+      <url>dav:http://project-output.ihomelab.local/snapshot-sites/${path.sites}</url>
+    </site>
+    <downloadUrl>http://archiva.ihomelab.local/repository/snapshots/${path.artifact}</downloadUrl>
+  </distributionManagement>
+
+  <profiles>
+    <profile>
+      <id>release-profile</id>
+      <distributionManagement>
+        <site>
+          <id>main-site</id>
+          <url>dav:http://project-output.ihomelab.local/sites/${path.sites}</url>
+        </site>
+        <downloadUrl>http://archiva.ihomelab.local/repository/internal/${path.artifact}</downloadUrl>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
+  <scm>
+   <developerConnection>scm:git:git@github.com:exa-soft/${path.git}.git</developerConnection>
+   <connection>scm:git:https://github.com/exa-soft/${path.git}.git</connection>
+   <url>https://github.com/exa-soft/${path.git}/</url>
+   <tag>HEAD</tag>
+  </scm>
+
+ <!-- not yet
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>http://jenkins.ihomelab.local/job/${parentproject.shortname} - ${subproject.shortname}/</url>
+  </ciManagement>
+   -->
+
+ 
 </project>

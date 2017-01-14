@@ -1,0 +1,29 @@
+<project>
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.5</version>
+  </skin>
+  <bannerRight>
+    <name>Hochschule Luzern - iHomeLab</name>
+    <src>http://www.ihomelab.ch/logos/ihomelab/ihl_logo_white_background.png</src>
+    <alt>Link to www.ihomelab.ch</alt>
+    <href>http://www.ihomelab.ch</href>
+    <border>1</border>
+    <!--
+    <width>50%</width>
+    <height>50%</height>
+    100%: 632, 186 
+    50%: 316, 93
+    40% 252, 74
+    -->
+    <width>252</width>
+    <height>74</height>
+    <title>Link to the website of iHomeLab</title>
+  </bannerRight>
+  <body>
+    <menu ref="parent"/>
+    <menu ref="reports"/>
+    <menu ref="modules"/>
+  </body>
+</project>
