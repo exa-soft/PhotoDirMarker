@@ -5,10 +5,10 @@
     <version>1.5</version>
   </skin>
   <bannerRight>
-    <name>Hochschule Luzern - iHomeLab</name>
-    <src>http://www.ihomelab.ch/logos/ihomelab/ihl_logo_white_background.png</src>
-    <alt>Link to www.ihomelab.ch</alt>
-    <href>http://www.ihomelab.ch</href>
+    <name>ebEXAsoft</name>
+    <src>http://github.com/exa-soft/files/raw/master/EXAsoft-white-padded.png</src>
+    <alt>Link to ebEXAsoft on GitHub</alt>
+    <href>http://github.com/exa-soft</href>
     <border>1</border>
     <!--
     <width>50%</width>
@@ -17,9 +17,9 @@
     50%: 316, 93
     40% 252, 74
     -->
-    <width>252</width>
-    <height>74</height>
-    <title>Link to the website of iHomeLab</title>
+    <width>125</width>
+    <height>80</height>
+    <title>Link to the EXAsoft repositories on GitHub</title>
   </bannerRight>
   <body>
     <menu ref="parent"/>

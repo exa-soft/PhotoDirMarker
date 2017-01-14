@@ -36,7 +36,7 @@ abstract class NodeStatus {
 //	assert colors['yellow'] == '#FFFF00'	
 //	assert colors instanceof java.util.LinkedHashMap
 	
-	NodeStatus (File parentDir) {
+	NodeStatus(File parentDir) {
 		this.parentDir = parentDir.absoluteFile
 	}
 	
@@ -212,7 +212,7 @@ class MyNodeStatus extends NodeStatus {
  * exists with a different value, its value in the combined map will be 
  * set to "mixed".</li>
  * <li>Then the result is propagated to the next higher level and again 
- * combined with those of the sister folders</li>
+ * combined with those of the sister folders.</li>
  * </ul>    
  *
  * @author edith

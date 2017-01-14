@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ch.ebexasoft.fototools
 
 import groovy.io.FileType

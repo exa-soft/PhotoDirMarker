@@ -1,8 +1,10 @@
+package ch.ebexasoft.fototools
+
 /**
- * 
+ * Script to be called from command line. Option -help or no option prints usage.
+ *
  * @author edith
  */
-package ch.ebexasoft.fototools
 
 //class PhotoDirMarker {
 //
@@ -120,7 +122,7 @@ else {
         default:
             def count = setValue (dirStatusTree, taglist, value)
             println "worked on $count tags: set '$value' to the following tags: '$tags'"
-            dirStatusTree.writeAllFiles()
+            //dirStatusTree.writeAllFiles()
             break        
     }
 }
@@ -155,6 +157,7 @@ def int setValue (DirStatusTree statusTree, String[] tags, String value) {
     
     int count = 0
     for (tagName in tags) {
+        println "\nsetting tag '$tagName' to value '$value'"
         statusTree.setValue (tagName, value, true)   // true to overwrite
         count++
     }

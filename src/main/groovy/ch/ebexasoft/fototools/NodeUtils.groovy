@@ -1,12 +1,10 @@
-/**
- * 
- */
 package ch.ebexasoft.fototools
 
 
 import java.io.File;
 
 import groovy.json.JsonOutput
+
 
 /**
  * Utils to work with nodes.
@@ -24,7 +22,7 @@ class NodeUtils {
 	}
 
 	/**
-	 * Put a NodeStatus object as pretty JSON into a String.
+	 * Put a AbstractNodeStatus object as pretty JSON into a String.
 	 *
 	 * @param nodeStatus 	the node status object
 	 * @return	the nodeStatus as JSON String
