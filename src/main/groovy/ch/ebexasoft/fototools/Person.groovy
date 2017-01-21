@@ -49,8 +49,11 @@ class Person {
   }
     
   private listChildren = Person.applyOnChildren.curry (presentPerson)
-  private listTree = Person.applyRecursiveMeFirst.curry (presentPerson)
-  private listTree2 = Person.applyRecursiveChildrenFirst.curry (presentPerson)
+  //private listTree = Person.applyRecursiveMeFirst.curry (presentPerson)
+  //private listTree2 = Person.applyRecursiveChildrenFirst.curry (presentPerson)
+  
+  private listTree = Functor.applyRecursiveMeFirst.curry (presentPerson)
+  private listTree2 = Functor.applyRecursiveChildrenFirst.curry (presentPerson)
   
   
   String toString() {
@@ -91,44 +94,7 @@ class Person {
     action (obj)
     obj?.children.each (action)
   }
-  
-  /**
-   * Traverse a tree of objects. The objects must have a property <code>children</code> which is 
-   * a list of objects also having children etc.
-   * The action is performed first on the object itself, then on all children and so on.
-   * @param action    a closure working on an object with children
-   * @param obj       an object which has a list of children of the same type in obj.children 
-   */
-  public static Closure applyRecursiveMeFirst = { action, obj ->
-    
-      //println "(applyRecursive2 start: called for $person)"
-      action (obj)
-      obj?.children.each () { child ->
-          //println "applyRecursive2: recursive calling for $child"
-          Person.applyRecursiveMeFirst (action, child)
-      }
-  }
-  
-  
-  /**
-   * Traverse a tree of objects. The objects must have a property <code>children</code> which is
-   * a list of objects also having children etc.
-   * The action is performed first on all children (and their children etc.) and in the end 
-   * on the object itself.
-   * @param action    a closure working on an object with children
-   * @param obj       an object which has a list of children of the same type in obj.children
-   */
-  public static Closure applyRecursiveChildrenFirst = { action, obj ->
-    
-      //println "(applyRecursive2 start: called for $person)"
-      obj?.children.each () { child ->
-          //println "applyRecursive2: recursive calling for $child"
-          Person.applyRecursiveChildrenFirst (action, child)
-      }
-      action (obj)
-  }
-  
-    
+      
 }
 
 

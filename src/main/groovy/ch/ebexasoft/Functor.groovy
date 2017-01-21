@@ -3,6 +3,8 @@
  */
 package ch.ebexasoft
 
+import groovy.lang.Closure
+
 /**
  * Common computational patterns, inspired by http://www.ibm.com/developerworks/library/j-pg08235/
  * 
@@ -36,4 +38,41 @@ abstract class Functor {
     return true
   }
   
+  
+  /**
+   * Traverse a tree of objects. The objects must have a property <code>children</code> which is
+   * a list of objects also having children etc.
+   * The action is performed first on the object itself, then on all children and so on.
+   * @param action    a closure working on an object with children
+   * @param obj       an object which has a list of children of the same type in obj.children
+   */
+  public static Closure applyRecursiveMeFirst = { action, obj ->
+    
+      //println "(applyRecursiveMeFirst start: called for $obj)"
+      action (obj)
+      obj?.children.each () { child ->
+          //println "applyRecursiveMeFirst: recursive calling for $child"
+          Functor.applyRecursiveMeFirst (action, child)
+      }
+  }
+  
+  
+  /**
+   * Traverse a tree of objects. The objects must have a property <code>children</code> which is
+   * a list of objects also having children etc.
+   * The action is performed first on all children (and their children etc.) and in the end
+   * on the object itself.
+   * @param action    a closure working on an object with children
+   * @param obj       an object which has a list of children of the same type in obj.children
+   */
+  public static Closure applyRecursiveChildrenFirst = { action, obj ->
+    
+      //println "(applyRecursiveChildrenFirst start: called for $obj)"
+      obj?.children.each () { child ->
+          //println "applyRecursiveChildrenFirst: recursive calling for $child"
+          Functor.applyRecursiveChildrenFirst (action, child)
+      }
+      action (obj)
+  }
+
 }
