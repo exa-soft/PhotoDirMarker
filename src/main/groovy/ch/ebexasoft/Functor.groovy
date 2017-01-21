@@ -55,6 +55,26 @@ abstract class Functor {
           Functor.applyRecursiveMeFirst (action, child)
       }
   }
+
+  /**
+   * Traverse a tree of objects, but allows variable depths as follows: The objects must have a 
+   * property <code>children</code> which is a list of objects also having children etc.
+   * The action is performed first on the object itself. If that returns false, recursion is not 
+   * done deeper. If it returns true, the action is performed on all children of the object, and so on.
+   * @param action    a closure working on an object with children, returning true if children of the object should also be handled
+   * @param obj       an object which has a list of children of the same type in obj.children
+   */
+  public static Closure applyRecursiveWithFeedback = { action, obj ->
+    
+      //println "(applyRecursiveMeFirst start: called for $obj)"
+      def cont = action (obj)
+      if (cont) {
+          obj?.children.each () { child ->
+              //println "applyRecursiveMeFirst: recursive calling for $child"
+              Functor.applyRecursiveMeFirst (action, child)
+          }
+      }
+  }
   
   
   /**

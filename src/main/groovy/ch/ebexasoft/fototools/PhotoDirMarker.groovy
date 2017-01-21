@@ -135,9 +135,13 @@ else {
  */
 def print (DirStatusTree statusTree, String[] tags) {
     
+//    for (tagName in tags) {
+//        statusTree.print (tags)
+//    }
     for (tagName in tags) {
-        statusTree.print (tags)
+        statusTree.printNew (tagName)
     }
+
 }
 
 // TODO convert setting a value or clearing a value to a closure, or use a method parameter, then combine setValue and clearValue methods 
