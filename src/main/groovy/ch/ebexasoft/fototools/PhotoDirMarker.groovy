@@ -139,7 +139,7 @@ def print (DirStatusTree statusTree, String[] tags) {
 //        statusTree.print (tags)
 //    }
     for (tagName in tags) {
-        statusTree.printNew (tagName)
+        statusTree.print (tagName)
     }
 
 }

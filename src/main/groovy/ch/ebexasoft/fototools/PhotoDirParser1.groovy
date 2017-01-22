@@ -9,7 +9,7 @@ import groovy.io.FileType
 
 def list = []
 
-def dir = new File("/home/edith/Bilder/fürUli")
+def dir = new File("/home/edith/Bilder/fuerUli")
 
 // dir.eachFileRecurse (FileType.DIRECTORIES) { subdir ->
 dir.eachDirRecurse () { subdir ->
@@ -45,11 +45,11 @@ def fotoDirs (String root, Closure closure) {
 		}
 	}
 }
-fotoDirs("/home/edith/Bilder/fürUli") {
+fotoDirs("/home/edith/Bilder/fuerUli") {
 	println "from fotoDirs: $it"
 }
 def fotoDirsList = []
-fotoDirs("/home/edith/Bilder/fürUli") { fotoDirsList << it }
+fotoDirs("/home/edith/Bilder/fuerUli") { fotoDirsList << it }
 list.each {
 	println "from fotoDirs: ${it.path}"
 }

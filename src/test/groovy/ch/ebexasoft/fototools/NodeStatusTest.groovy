@@ -31,7 +31,7 @@ class NodeStatusTest {
 	@Before
 	void before() {
         resourcesDir = new File ('src/test/resources')
-        testRoot = new File("/home/edith/Bilder/fürUli")
+        testRoot = new File("/home/edith/Bilder/fuerUli")
         testDate = df.parse("2016-10-29T18:59:45-MESZ")
         testDate2 = df.parse("2016-12-07T05:35:57-MESZ")
 	}
@@ -56,7 +56,7 @@ class NodeStatusTest {
         
     }
 }''', json)
-        // TODO why is not stored: "dir": "/home/edith/Bilder/fürUli",
+        // TODO why is not stored: "dir": "/home/edith/Bilder/fuerUli",
         
         treeStatus.status['name'] = ["true", testDate]
         treeStatus.status['copyright'] = ["false", testDate2]
@@ -67,7 +67,7 @@ class NodeStatusTest {
         
         assertEquals (
 '''{
-    "dir": "/home/edith/Bilder/fürUli",
+    "dir": "/home/edith/Bilder/fuerUli",
     "status": {
         "name": ["true", "2016-10-29T18:59:45-MESZ"],
         "copyright": ["false", "2016-12-07T05:35:57-MESZ"]

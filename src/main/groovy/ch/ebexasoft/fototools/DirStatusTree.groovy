@@ -126,7 +126,6 @@ class DirStatusTree {
         p.flush()
     }
     
-    
     private def listTreeInternal (IndentPrinter p) {
         
         p.printIndent()
@@ -141,7 +140,8 @@ class DirStatusTree {
     
     // LATER set multiple values in one go?
     /**
-     * Set a value on the tree (recursively)
+     * Set a value on the tree (recursively). The value is set to the myNodeStatus objects,
+     * together with a timestamp when it has been changed.
      * @param key
      * @param value
      * @param overwrite
@@ -152,158 +152,122 @@ class DirStatusTree {
         
         // How to call the function setValue2Obj recursively? Very cool generic recursion solution in Groovy:
         // We define the rightmost 3 parameters for setValue2Obj and use that as new function
-        def setTheseValuesToObj = setValue2Obj.rcurry (key, value, overwrite)
+        def setTheseValuesToObj = setValue2Obj1.rcurry (key, value, overwrite)
         // the new function we give to the applyRecursive... method
         def setTheseValuesRecursive = Functor.applyRecursiveChildrenFirst.curry(setTheseValuesToObj)
         // finally, we run it with 'this' as starting value
         setTheseValuesRecursive (this)
+        
+        // TODO after changing a value, we should re-write all the files, should we?
     }
     
-    private listChildList = { DirStatusTree dst ->
+    
+    /**
+     * Writes all dirStatus objects to their files (recursively)
+     */
+    def writeAllFiles () {
+        
+        def toFileAll = Functor.applyRecursiveMeFirst.curry(toFile1)
+        toFileAll (this)
+    }
+
+    // TODO test print
+    def print (String key) {
+        
+        def printThatKey = printDirStatus1.rcurry(key)
+        def printThatKeyRecursive = Functor.applyRecursiveWithFeedback.curry (printThatKey)
+        printThatKeyRecursive(this)
+    }
+    
+    /**
+     * Prints the status for the given keys
+     * @param keys
+     */
+    def printNewMulti (String[] keys) {
+        for (key in keys) {
+            print(key)
+        }
+    }
+    
+/*---------------------------------------------------------------------------------------
+ * Below are functions that work on one DirStatusTree object (without calling children). 
+ * Therefore they can be made to work recursively by currying and calling them with one 
+ * of the Functor.applyRecursive... methods.
+ * These methods are marked with an appended '1' (to show that they only work on 1 object).
+ */
+    
+    private listChildList1 = { DirStatusTree dst ->
       
         println "listChildren called on $dst"
         dst?.children.each {
             println "- child $it"
         }
     }
-    private listChildren = Functor.apply.curry (listChildList)
+    private listChildren = Functor.apply.curry (listChildList1)
     
     
     /**
      * It works on the given treeObj and sets (in the myNodeStatus, if that is not null) 
-     * the given value for the given key. If there is already a value for the given key, 
-     * the overwrite parameter defines if the value will be overwritten. 
+     * the given value for the given key, together with a time-stamp.
+     * If there is already a value for the given key, the overwrite parameter defines if 
+     * the value will be overwritten. 
      * Note that this function will be called recursively, so it must not call its children. 
-
+     * 
      * @param treeObj the tree object to work on
      * @param key   the key
      * @param value the value
      * @param overwrite   if true, an existing value will be overwritten; if false, it will be only set if new
      */
-    private setValue2Obj = { DirStatusTree treeObj, String key, String value, boolean overwrite ->
+    private setValue2Obj1 = { DirStatusTree treeObj, String key, String value, boolean overwrite ->
         
-        println "setValue2Obj: on $treeObj, set value='$value' for key='$key', overwrite='$overwrite'"
-        def status = treeObj?.myNodeStatus?.status
-        if (status != null) {
-            if (overwrite || !status.containsKey(key))
-                status[key] = value
+        println "setValue2Obj1: on $treeObj, set value='$value' for key='$key', overwrite='$overwrite'"
+        if (treeObj?.myNodeStatus != null) {
+            def newValue = treeObj?.myNodeStatus.setValue (key, value, overwrite)
+            println "newvalue is $newValue"
         }
     }
-
-    
-    private printDirStatus = { DirStatusTree treeObj, String key ->  
+   
+    private printDirStatus1 = { DirStatusTree treeObj, String key ->  
     // private printDirStatus = { DirStatusTree treeObj, String[] keys ->
         if (treeObj?.dirStatus) {
             String value = dirStatus.status?.get(key)
             if (value == null) {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
-                return false
+                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
+                //return false
+                return true
             }
             else if (value in ['true', 'false', '?']) {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
-                return false
+                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
+                //return false
+                return true
             }
             else {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
+                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
                 return true
             }
         }      
     } 
     
-    
-    // TODO test printNew
-    def printNew (String key) {
-        
-        def printThatKey = printDirStatus.rcurry(key)
-        def printThatKeyRecursive = Functor.applyRecursiveWithFeedback.curry (printThatKey)
-        printThatKeyRecursive(this)
-    }   
-    
-    
     /**
-     * Prints the status for the given keys
-     * @param keys
+     * Works on a DirStatusTree object and writes the status of its objects 
+     * to files (both DirStatus and MyNodeStatus objects)
      */
-    def print (String[] keys) {
+    private def toFile1 = { DirStatusTree treeObj ->
         
-        this.traverseDirStatus (_print (keys))
-    }
-    def printNewMulti (String[] keys) {
-        for (key in keys) {
-            printNew(key)
+        //println "toFile1 for ${treeObj.parentDir}"
+        if (treeObj.myNodeStatus) {
+            treeObj.myNodeStatus.toFile()
+            println "(toFile1) written myNodeStatus to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
+        }
+        if (treeObj.dirStatus) {
+            treeObj.dirStatus.toFile()
+            println "(toFile1) written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
         }
     }
 
-    def traverseDirStatus (Closure action, DirStatusTree dst) {
-      
-        children.each {
-            traverseDirStatus (action(it))
-  //            if (it.dirStatus) action(it.dirStatus)
-        }
-        action(this.dirStatus)
-    }
-    
-    /**
-     * Writes all dirStatus objects to their files (recursively)
-     * @return
-     */
-    def writeAllFiles () {
-        
-        this.traverseTree (_toFile())
-    }
-    
-    
-    /**
-     * 
-     * @param keys  array of keys to print
-     * @return
-     */
-    private def Closure _print (String[] keys) { 
-      {
-        dirStatus ->
-            for (key in keys) {
-                String value = dirStatus.status?.get(key) 
-                if (value == null) {
-                    printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])                
-                    // TODO do not continue (how?)
-                }
-                else if (value in ['true', 'false', '?']) {
-                    printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
-                    // TODO do not continue (how?)
-                }
-                else {
-                    // TODO continue recursively (this will be done because this function will be called through traverse)
-                    printf ('%1$-100s: %2$-10s = %3$s\n', [dirStatus.parentDir.absolutePath, key, value])
-                    
-                }
-            }
-        }
-    }
-
-    
-    /**
-     * Works on a DirStatusTree object and writes the status of its objects to files  
-     * (both DirStatus and MyNodeStatus objects)
-     * @param key
-     * @param value
-     * @return
-     */
-    private def Closure _toFile () {
-        
-        { treeObj ->
-//            println "working on tree object for ${treeObj.parentDir}"
-            if (treeObj.myNodeStatus) {
-                treeObj.myNodeStatus.toFile()
-                println "(_toFile) written myNodeStatus to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
-            }
-            if (treeObj.dirStatus) {
-                treeObj.dirStatus.toFile()
-                println "(_toFile) written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
-            }            
-        }
-    }
-    
-
+/*------------------------------
+ * other functions
+ */
     
     /**
      * String representation of this class
@@ -311,10 +275,10 @@ class DirStatusTree {
     def String toString () {
         
         //"[parentDir=${parentDir.name},\n    myNodeStatus=$myNodeStatus,\n    dirStatus=$dirStatus]"
-      if (children != null) 
+      if (children)
           "[DirStatusTree: parentDir=${parentDir.name}, with ${children.size()} children]"
-      else 
+      else
           "[DirStatusTree: parentDir=${parentDir.name}, with no children]"
     }
-    
+
 }

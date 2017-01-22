@@ -1,6 +1,7 @@
 package ch.ebexasoft.fototools
 
-import java.util.Date;
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 import groovy.json.JsonOutput
 import groovy.json.JsonParserType
@@ -112,7 +113,7 @@ abstract class NodeStatus {
 
     
     /**
-     * Helper method to instatiate objects from JSON (via pure Groovy objects).
+     * Helper method to instantiate objects from JSON (via pure Groovy objects).
      * Must be a map with two entries: 
      * <ul>
      * <li>key 'dir', value the parent directory path</li>
@@ -154,9 +155,11 @@ abstract class NodeStatus {
 class MyNodeStatus extends NodeStatus {
 	
 	public static final String FILENAME = 'thisDirFileStatus.txt'
-
-	MyNodeStatus (File parentDir) {
-		super(parentDir)
+  public static final String DATEFORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss-z"
+  public static final DateFormat DATEFORMAT = new SimpleDateFormat (MyNodeStatus.DATEFORMAT_STRING)
+  
+  MyNodeStatus (File parentDir) {
+      super(parentDir)
 	}
 	
 	/**
@@ -174,7 +177,7 @@ class MyNodeStatus extends NodeStatus {
      * @param dir   the directory where to read the file from
      * @return  the filled object
      */	
-	static MyNodeStatus fromDir (File parentDir) {
+	  static MyNodeStatus fromDir (File parentDir) {
 		
         if (!NodeUtils.containsPics(parentDir)) return null
         
@@ -194,7 +197,38 @@ class MyNodeStatus extends NodeStatus {
         // TODO should we warn if obj.parentDir not equals parentDir? (file in wrong directory)
         my.parentDir = parentDir.absoluteFile
         return my
-	} 
+	  } 
+
+    /**
+     * Set a value for a specified key, together with a timestamp of the date/time when
+     * it has been set.
+     * @param key the key
+     * @param value the value to be set
+     * @param overwrite if false, the value is only set if it does not yet exist
+     * @return the new value, if changed; null otherwise
+     */
+//    public List setValue (String key, String value, Boolean overwrite) {
+//        println "called setValue with Boolean object as parameter"
+//        return setValue (key, value, overwrite.value)
+//    }
+
+    /**
+     * Set a value for a specified key, together with a timestamp of the date/time when 
+     * it has been set.
+     * @param key the key
+     * @param value the value to be set
+     * @param overwrite if false, the value is only set if it does not yet exist
+     * @return the new value, if changed; null otherwise
+     */
+    public List setValue (String key, String value, boolean overwrite) {
+        println "called setValue with Boolean object as parameter"
+        if (overwrite || !status.containsKey(key)) {
+            String timestamp = MyNodeStatus.DATEFORMAT.format(new Date())
+            status[key] = [value, timestamp]
+            return status[key]
+        }
+        return null
+    }
 	
 } 
 

@@ -43,9 +43,9 @@ class NodeUtilsTest {
     @Test
     public void testContainsPics() {
         
-        assert (!NodeUtils.containsPics (new File("src/test/resources/TreeNodeStatusTests/testDirOriginal/fürUli")))
-        assert (!NodeUtils.containsPics (new File("src/test/resources/TreeNodeStatusTests/testDirOriginal/fürUli/gezeigt")))
-        assert (NodeUtils.containsPics (new File("src/test/resources/TreeNodeStatusTests/testDirOriginal/fürUli/gezeigt/2016Mai")))
+        assert (!NodeUtils.containsPics (new File("src/test/resources/TreeNodeStatusTests/testDirOriginal/fuerUli")))
+        assert (!NodeUtils.containsPics (new File("src/test/resources/TreeNodeStatusTests/testDirOriginal/fuerUli/gezeigt")))
+        assert (NodeUtils.containsPics (new File("src/test/resources/TreeNodeStatusTests/testDirOriginal/fuerUli/gezeigt/2016Mai")))
     }
 
 }

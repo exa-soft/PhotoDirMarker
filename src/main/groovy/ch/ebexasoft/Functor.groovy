@@ -48,7 +48,16 @@ abstract class Functor {
    */
   public static Closure applyRecursiveMeFirst = { action, obj ->
     
-      //println "(applyRecursiveMeFirst start: called for $obj)"
+    // TODO remove printing when null
+      if (obj == null) {
+          println "(applyRecursiveMeFirst start: obj is null)"
+          return
+      }
+      if (action == null) {
+          println "(applyRecursiveMeFirst start: action is null)"
+          return
+      }
+      println "(applyRecursiveMeFirst start: called for $obj)"
       action (obj)
       obj?.children.each () { child ->
           //println "applyRecursiveMeFirst: recursive calling for $child"
@@ -71,7 +80,7 @@ abstract class Functor {
       if (cont) {
           obj?.children.each () { child ->
               //println "applyRecursiveMeFirst: recursive calling for $child"
-              Functor.applyRecursiveMeFirst (action, child)
+              Functor.applyRecursiveWithFeedback (action, child)
           }
       }
   }
