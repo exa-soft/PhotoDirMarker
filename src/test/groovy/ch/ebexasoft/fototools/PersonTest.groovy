@@ -10,6 +10,8 @@ import groovy.json.StreamingJsonBuilder
 import org.junit.Before
 import org.junit.Test
 
+import ch.ebexasoft.codebin.Person
+
 /**
  * @author edith
  *

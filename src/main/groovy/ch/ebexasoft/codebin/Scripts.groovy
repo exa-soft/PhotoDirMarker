@@ -1,8 +1,7 @@
 /**
  * 
  */
-package ch.ebexasoft.fototools
-
+package ch.ebexasoft.codebin
 
 def ahnin = new Person('Urahnin', 1850)
 ahnin.presentMe()

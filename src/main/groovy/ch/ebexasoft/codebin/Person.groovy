@@ -1,8 +1,7 @@
-package ch.ebexasoft.fototools
+package ch.ebexasoft.codebin
 
 import java.util.Map
 import ch.ebexasoft.Functor
-import ch.ebexasoft.fototools.Scripts
 
 /**
  * Class to test recursion.
