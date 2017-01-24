@@ -77,7 +77,7 @@ class MyNodeStatus extends NodeStatus {
         println "called setValue with Boolean object as parameter"
         if (overwrite || !status.containsKey(key)) {
             String timestamp = MyNodeStatus.DATEFORMAT.format(new Date())
-            return put (key, [value, timestamp])
+            return putStatus (key, [value, timestamp])
         }
         return null
     }
@@ -88,9 +88,9 @@ class MyNodeStatus extends NodeStatus {
      * @return
      * @see java.util.Map#put(java.lang.Object, java.lang.Object)
      */
-    def Object put(String key, String value) {
+    def Object putStatus(String key, String value) {
       List l = createValueWithDate (value)
-      return put (key, l)
+      return status (key, l)
     }
     
     /**

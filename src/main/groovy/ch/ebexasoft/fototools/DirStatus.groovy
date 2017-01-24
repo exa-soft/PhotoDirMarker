@@ -73,13 +73,13 @@ class DirStatus extends NodeStatus {
      */
     def combineValue (String key, String value) {
         
-      if (!containsKey(key)) {
-        put (key, value)
+      if (!containsStatusKey(key)) {
+        putStatus (key, value)
       }
       else {
-        String existingValue = get(key)
+        String existingValue = getStatus(key)
         if (!existingValue.equals(value))
-          put (key, MIXEDVALUE)
+          putStatus (key, MIXEDVALUE)
       }
     }
     
@@ -103,7 +103,7 @@ class DirStatus extends NodeStatus {
      * @param key       the key
      */
     def clearValue (String key) {
-        remove(key)
+        removeStatus(key)
     }
     
 }

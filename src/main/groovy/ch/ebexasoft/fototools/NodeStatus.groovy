@@ -1,16 +1,10 @@
 package ch.ebexasoft.fototools
 
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Map
-import java.util.Set
 import java.util.function.BiConsumer
 
+// import groovy.json.JsonGenerator
 import groovy.json.JsonOutput
-import groovy.json.JsonParserType
-import groovy.json.JsonSlurper
 import groovy.json.StreamingJsonBuilder
-
 
 /**
  * Common class for node status. Will be subclassed for photo nodes
@@ -20,16 +14,27 @@ import groovy.json.StreamingJsonBuilder
  */
 abstract class NodeStatus {
 
+  
+  // LATER with Groovy 2.5, use JsonGenerator for time zone configuration of output
+  
+  // static JsonGenerator jsonGenerator = JsonGenerator.Options()
+  //   .timezone('GMT+01:00')
+  //   .build()
+  // see http://docs.groovy-lang.org/next/html/gapi/index.html?groovy/json/JsonGenerator.Options
+      
   File parentDir
 
   /**
    * Map with the tags and their values. The tag name (e.g. 'name', 
    * 'copyright', 'keywords') is the key. The value is a heterogenous
    * list, with the value for the tag as first element, the date/time
-   * when it has been set as the second element. 
+   * when it has been set as the second element.
+   * The map is not private (it is easier to create JSON), but it should only 
+   * be written via putStatus/removeStatus!
    */
-  private Map status = [:] // will create new LinkedHashMap ()
-
+  //private Map status = [:] // will create new LinkedHashMap ()
+  Map status = [:] // will create new LinkedHashMap ()
+  
   /**
    * Will be set to true if something has been changed, and set to false when 
    * file is written.  
@@ -68,7 +73,7 @@ abstract class NodeStatus {
    * @return
    * @see java.util.Map#containsKey(java.lang.Object)
    */
-  def boolean containsKey(String key) {
+  def boolean containsStatusKey(String key) {
     return status.containsKey(key)
   }
 
@@ -77,7 +82,7 @@ abstract class NodeStatus {
    * @return
    * @see java.util.Map#get(java.lang.Object)
    */
-  def Object get(String key) {
+  def Object getStatus(String key) {
     return status.get(key);
   }
 
@@ -87,7 +92,7 @@ abstract class NodeStatus {
    * @return
    * @see java.util.Map#put(java.lang.Object, java.lang.Object)
    */
-  def Object put(String key, Object value) {
+  def Object putStatus(String key, Object value) {
     changed = true
     return status.put(key, value)
   }
@@ -97,7 +102,8 @@ abstract class NodeStatus {
    * @param m
    * @see java.util.Map#putAll(java.util.Map)
    */
-  def void putAll(Map m) {
+  def void putStatusAll(Map m) {
+    changed = true
     status.putAll(m);
   }
 
@@ -106,7 +112,8 @@ abstract class NodeStatus {
    * @return
    * @see java.util.Map#remove(java.lang.Object)
    */
-  def Object remove(String key) {
+  def Object removeStatus(String key) {
+    changed = true
     return status.remove(key);
   }
 
@@ -114,7 +121,7 @@ abstract class NodeStatus {
    * @return
    * @see java.util.Map#keySet()
    */
-  def Set keySet() {
+  def Set statusKeySet() {
     return status.keySet();
   }
 
@@ -122,7 +129,7 @@ abstract class NodeStatus {
    * @param action
    * @see java.util.Map#forEach(java.util.function.BiConsumer)
    */
-  def void forEach(BiConsumer action) {
+  def void forEachStatus(BiConsumer action) {
     status.forEach(action)
   }
 
@@ -134,6 +141,8 @@ abstract class NodeStatus {
 
     StringWriter writer = new StringWriter()
     StreamingJsonBuilder builder = new StreamingJsonBuilder(writer)
+    // LATER with Groovy 2.5, use JsonGenerator for time zone configuration of output (see also top of this class)
+    //StreamingJsonBuilder builder = new StreamingJsonBuilder(writer, generator)
     toJsonBuilder builder
     return JsonOutput.prettyPrint(writer.toString())
   }
@@ -196,7 +205,7 @@ abstract class NodeStatus {
 
     obj.parentDir = new File(map['dir'])
     //obj.status.putAll(map['status'])
-    obj.putAll(map['status'])
+    obj.putStatusAll(map['status'])
   }
 
   def String toString () {

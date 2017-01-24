@@ -95,8 +95,10 @@ class DirStatusTreeTest {
     @Test
     public void testInitChildren1Level () {
         
-        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fuerUli/gezeigt'
-        File testRoot = new File (testSourcesWork, 'fuerUli/gezeigt')
+        // String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt'
+        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt'
+        //File testRoot = new File (testSourcesWork, 'fuerUli/gezeigt')
+        File testRoot = new File (testSourcesWork, 'fürUli/gezeigt')
         assert testRoot.exists()
         DirStatusTree treeStatus = _testInitChildren(testRoot)
         
@@ -247,7 +249,8 @@ class DirStatusTreeTest {
 
         // TODO move test to work on some other dir (that has a myNodeStatus) 
         
-        File testRoot = new File (testSourcesWork, 'fuerUli/2016Schweden-Makro')
+        //File testRoot = new File (testSourcesWork, 'fuerUli/2016Schweden-Makro')
+        File testRoot = new File (testSourcesWork, 'fürUli/2016Schweden-Makro')
         assert testRoot.exists()
         
         
@@ -255,9 +258,10 @@ class DirStatusTreeTest {
         treeStatus.initChildren()
         assertNotNull(treeStatus.children)
         
-        treeStatus.myNodeStatus.status['copyright'] = ["true", testDate]
+        treeStatus.myNodeStatus.putStatus('copyright', ["true", testDate])
         assertEquals (
-            "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fuerUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
+//            "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fuerUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
+            "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
             treeStatus.myNodeStatus.printValue("copyright")
         )
 
@@ -340,31 +344,48 @@ class DirStatusTreeTest {
         // TODO change tests to account for changing status (should also update dirStatus)
         
         
+        // with the test setup, treeStatus.myNodeStatus is null (because top dir has no pictures),
+        // so none of the tests must check treeStatus.myNodeStatus.status....
+        // We can check a grandchild instead:
+
+        def DirStatusTree firstGrandchild = treeStatus.children[0].children[0]
+        
         // overwrite existing value (last param true)
         treeStatus.setValue('y1y2y3', 'newValue', true)
         //assert treeStatus.myNodeStatus.status.y1y2y3[0] == 'newValue'
+        assert firstGrandchild.myNodeStatus.status.y1y2y3[0] == 'newValue'
         treeStatus.children.each { child ->
             if (child.myNodeStatus?.status) 
+                assert child.myNodeStatus?.status.y1y2y3[0] == 'newValue'
+        }
+        firstGrandchild.children.each { child ->
+            if (child.myNodeStatus?.status)
                 assert child.myNodeStatus?.status.y1y2y3[0] == 'newValue'
         }
 
         // existing value, do not overwrite (last param false)
         treeStatus.setValue('n1n2n3', 'someNew', false)
-        assert treeStatus.dirStatus.status.n1n2n3 == 'false'
+        assert firstGrandchild.myNodeStatus?.status.n1n2n3[0] == 'false'
         treeStatus.children.each { child ->
             if (child.myNodeStatus?.status) 
-                assert child.myNodeStatus?.status.n1n2n3[0] == 'false'
+                assert child.myNodeStatus?.getStatus('n1n2n3')[0] == 'false'
+        }
+        firstGrandchild.children.each { child ->
+            if (child.myNodeStatus?.status)
+                assert child.myNodeStatus?.getStatus('n1n2n3')[0] == 'false'
         }
 
         // add new value
         String newKey = '_4'
         String newValue = 'someNew'
-        assert treeStatus.dirStatus.status[newKey] == null
+        assert firstGrandchild != null
+        assert firstGrandchild.myNodeStatus.getStatus(newKey) == null
         treeStatus.setValue(newKey, newValue, false)
-        assert treeStatus.dirStatus.status[newKey] == newValue
+        assert firstGrandchild.myNodeStatus.getStatus(newKey)[0] == newValue  // value [1] is a timestamp
         assertEquals 1, treeStatus.children.size() 
         treeStatus.children.each { child ->
-            assert child.dirStatus.status[newKey] == newValue
+            if (child.myNodeStatus?.status)
+                assert child.myNodeStatus?.getStatus(newKey)[0] == newValue
         }
     }
         

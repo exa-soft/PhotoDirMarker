@@ -73,11 +73,11 @@ class DirStatusTree {
                     // collect keys from both dirStatus and myNodeStatus
                     if (childNode.dirStatus != null) {
                         //println "childNode ${childNode.parentDir} has a dirStatus, collecting its keys"
-                        keys.addAll (childNode.dirStatus.keySet())
+                        keys.addAll (childNode.dirStatus.statusKeySet())
                     }
                     if (childNode.myNodeStatus != null) {
                         //println "childNode ${childNode.parentDir} has a myNodeStatus, collecting its keys"
-                        keys.addAll (childNode.myNodeStatus.keySet())
+                        keys.addAll (childNode.myNodeStatus.statusKeySet())
                     }
                 }
                 println "all children of $parentDir combined have ${keys.size()} keys"
@@ -92,18 +92,18 @@ class DirStatusTree {
                         //if (childNode.dirStatus?.status != null) {
                         if (childNode.dirStatus != null) {
                             //println "childNode ${childNode.parentDir} has a dirStatus, will combine its values"
-                            String value = childNode.dirStatus?.get(key)
+                            String value = childNode.dirStatus?.getStatus(key)
                             dirStatus.combineValue (key, value)     // values in dirStatus are only Strings (true, false, etc.)
                         }
                         else {
                             //println "childNode ${childNode.parentDir} has no dirStatus, will combine values from myNodeStatus"
-                            String[] values = childNode.myNodeStatus?.get(key)     // values in myNodeStatus are String[] (first value true, false, etc., second value timestamp)
+                            String[] values = childNode.myNodeStatus?.getStatus(key)     // values in myNodeStatus are String[] (first value true, false, etc., second value timestamp)
                             dirStatus.combineValue (key, (values != null ? values[0] : null))
                         }
                     }
                     // combine my own status
                     if (myNodeStatus != null) {
-                        String[] values = myNodeStatus.get(key)
+                        String[] values = myNodeStatus.getStatus(key)
                         //if (values == null) println "myNodeStatus for $parentDir has no value for key $key"
                         dirStatus.combineValue (key, (values != null ? values[0] : null))
                     }
@@ -231,7 +231,7 @@ class DirStatusTree {
     private printDirStatus1 = { DirStatusTree treeObj, String key ->  
     // private printDirStatus = { DirStatusTree treeObj, String[] keys ->
         if (treeObj?.dirStatus) {
-            String value = dirStatus?.get(key)
+            String value = dirStatus?.getStatus(key)
             if (value == null) {
                 printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
                 //return false
