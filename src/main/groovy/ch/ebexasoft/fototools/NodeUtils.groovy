@@ -41,7 +41,7 @@ class NodeUtils {
 		File file = new File (nodeStatus.parentDir, filename)
 		String json = toJson (nodeStatus)
 		
-		new File(file, filename).withWriter ('UTF-8') { writer ->
+		new File(file, filename).withWriter (NodeStatus.ENCODING) { writer ->
 			writer.write (json)
 		}
 	

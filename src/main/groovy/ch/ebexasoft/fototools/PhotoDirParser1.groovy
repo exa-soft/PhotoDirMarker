@@ -9,7 +9,7 @@ import groovy.io.FileType
 
 def list = []
 
-def dir = new File("/home/edith/Bilder/fuerUli")
+def dir = new File("/home/edith/Bilder/fürUli")
 
 // dir.eachFileRecurse (FileType.DIRECTORIES) { subdir ->
 dir.eachDirRecurse () { subdir ->
@@ -45,11 +45,11 @@ def fotoDirs (String root, Closure closure) {
 		}
 	}
 }
-fotoDirs("/home/edith/Bilder/fuerUli") {
+fotoDirs("/home/edith/Bilder/fürUli") {
 	println "from fotoDirs: $it"
 }
 def fotoDirsList = []
-fotoDirs("/home/edith/Bilder/fuerUli") { fotoDirsList << it }
+fotoDirs("/home/edith/Bilder/fürUli") { fotoDirsList << it }
 list.each {
 	println "from fotoDirs: ${it.path}"
 }
@@ -62,7 +62,7 @@ def fotoDirsList1 = []
 /*
 String fileContents = new File('/path/to/file').text
 If you need to specify the character encoding, use the following instead:
-String fileContents = new File('/path/to/file').getText('UTF-8')
+String fileContents = new File('/path/to/file').getText(NodeStatus.ENCODING)
 
 new File( folder, 'file.txt' ).withWriterAppend { w ->
   w << "Some text\n"

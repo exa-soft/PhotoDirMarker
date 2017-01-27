@@ -50,6 +50,7 @@ class NodeStatusTest {
 		assertNotNull (json)
 		println "json String:\n$json"
 		assertTrue (System.out instanceof PrintStream)
+    // LATER this test fails because of encoding issue in StreamingJsonBuilder, see top of NodeStatus.groovy
 		assertEquals ( 
 '''{
     "dir": "/home/edith/Bilder/fürUli",
@@ -220,7 +221,7 @@ class NodeStatusTest {
         st.toFile()
         assert testTarget.exists()
                 
-        String fileContents = testTarget.getText('UTF-8')
+        String fileContents = testTarget.getText(NodeStatus.ENCODING)
         assertEquals '''{
     "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/jsonTarget1",
     "status": {

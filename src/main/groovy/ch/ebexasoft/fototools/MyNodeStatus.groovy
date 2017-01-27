@@ -52,7 +52,7 @@ class MyNodeStatus extends NodeStatus {
         }
         
         def jsonSlurper = new JsonSlurper(type: JsonParserType.LAX)
-        def obj = jsonSlurper.parse(statusFile, 'UTF-8')
+        def obj = jsonSlurper.parse(statusFile, NodeStatus.ENCODING)
                 
         MyNodeStatus my = new MyNodeStatus(parentDir)
         assert obj instanceof Map

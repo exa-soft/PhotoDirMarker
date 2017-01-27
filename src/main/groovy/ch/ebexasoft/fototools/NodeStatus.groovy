@@ -16,7 +16,12 @@ abstract class NodeStatus {
 
   
   // LATER with Groovy 2.5, use JsonGenerator for time zone configuration of output
-  
+  // LATER maybe in the JsonGenerator, encoding can be set (because now, the StreamingJsonBuilder converts ü to \u00fc etc.)
+  // Specifying / changing encoding below does not help, conversion occurs not when 
+  // writing the file, but when encoding to json in the StreamingJsonBuilder).
+  //public static String ENCODING = 'ISO-8859-1'
+  public static String ENCODING = 'UTF-8'
+
   // static JsonGenerator jsonGenerator = JsonGenerator.Options()
   //   .timezone('GMT+01:00')
   //   .build()
@@ -166,7 +171,7 @@ abstract class NodeStatus {
    */
   def toFile (File target) {
 
-    target.withPrintWriter('UTF-8') {
+    target.withPrintWriter(NodeStatus.ENCODING) {
       it.write(toJson())
     }
     changed = false
