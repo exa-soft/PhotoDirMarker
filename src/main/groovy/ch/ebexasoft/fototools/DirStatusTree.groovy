@@ -149,7 +149,7 @@ class DirStatusTree {
      */
     def setValue (String key, String value, boolean overwrite) {
 
-        println "\nsetValue: key='$key' to value '$value' recursively"
+        //println "\nsetValue: key='$key' to value '$value' recursively"
         
         // How to call the function setValue2Obj recursively? Very cool generic recursion solution in Groovy:
         // We define the rightmost 3 parameters for setValue2Obj and use that as new function
@@ -158,8 +158,6 @@ class DirStatusTree {
         def setTheseValuesRecursive = Functor.applyRecursiveChildrenFirst.curry(setTheseValuesToObj)
         // finally, we run it with 'this' as starting value
         setTheseValuesRecursive (this)
-        
-        // TODO after changing a value, we should re-write all the files, should we?
     }
     
     
@@ -189,6 +187,32 @@ class DirStatusTree {
             print(key)
         }
     }
+    
+    // for debugging: 
+    
+    
+    
+    /**
+     * Set a value on the tree (recursively). The value is set to the myNodeStatus objects,
+     * together with a timestamp when it has been changed.
+     * @returns a map with the flags if the file should been written because changed
+     */
+    def Map collectChangedFlags () {
+
+        //println "\nsetValue: key='$key' to value '$value' recursively"
+        
+        Map flagMap = [:]
+        // How to call the function setValue2Obj recursively? Very cool generic recursion solution in Groovy:
+        // We define the rightmost 3 parameters for setValue2Obj and use that as new function
+        def collectInThisMap = collectChangedFlags1.rcurry (flagMap)
+        // the new function we give to the applyRecursive... method
+        def collectInThisMapRecursive = Functor.applyRecursiveMeFirst.curry(collectInThisMap)
+        // finally, we run it with 'this' as starting value
+        collectInThisMapRecursive (this)
+        return flagMap
+    }
+    
+  
     
 /*---------------------------------------------------------------------------------------
  * Below are functions that work on one DirStatusTree object (without calling children). 
@@ -221,10 +245,10 @@ class DirStatusTree {
      */
     private setValue2Obj1 = { DirStatusTree treeObj, String key, String value, boolean overwrite ->
         
-        println "setValue2Obj1: on $treeObj, set value='$value' for key='$key', overwrite='$overwrite'"
+        println "setValue2Obj1 (overwrite='$overwrite'): set value='$value' for key='$key', on $treeObj"
         if (treeObj?.myNodeStatus != null) {
             def newValue = treeObj?.myNodeStatus.setValue (key, value, overwrite)
-            println "newvalue is $newValue"
+            //println "newvalue is $newValue"
         }
     }
    
@@ -263,6 +287,21 @@ class DirStatusTree {
         if (treeObj.dirStatus) {
             treeObj.dirStatus.toFile()
             println "(toFile1) written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
+        }
+    }
+    
+    private def collectChangedFlags1 = { DirStatusTree treeObj, Map collectedFlags ->
+
+        println "collectChangedFlags for ${treeObj.parentDir}"
+        if (treeObj.myNodeStatus) {
+            String key = treeObj.myNodeStatus.parentDir.path + " - " + MyNodeStatus.FILENAME
+            collectedFlags.put (key, treeObj.myNodeStatus.changed)
+            println "(collectChangedFlags1) added to map: key $key, value ${treeObj.myNodeStatus.changed}"
+        }
+        if (treeObj.dirStatus) {
+            String key = treeObj.dirStatus.parentDir.path + " - " + DirStatus.FILENAME
+            collectedFlags.put (key, treeObj.dirStatus.changed)
+            println "(collectChangedFlags1) added to map: key $key, value ${treeObj.dirStatus.changed}"
         }
     }
 

@@ -113,6 +113,7 @@ else {
     switch (options) {
         case (options.c):
             clearValue (dirStatusTree, taglist)
+            // FIXME should do a recalculate of the tree after changing values
             dirStatusTree.writeAllFiles()
             break
         case (options.i):
@@ -122,7 +123,8 @@ else {
         default:
             def count = setValue (dirStatusTree, taglist, value)
             println "worked on $count tags: set '$value' to the following tags: '$tags'"
-            //dirStatusTree.writeAllFiles()
+            // FIXME should do a recalculate of the tree after changing values
+            dirStatusTree.writeAllFiles()
             break        
     }
 }

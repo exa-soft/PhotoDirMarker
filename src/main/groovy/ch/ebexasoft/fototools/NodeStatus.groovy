@@ -170,11 +170,18 @@ abstract class NodeStatus {
    * Write this node to the given file in JSON format
    */
   def toFile (File target) {
-
-    target.withPrintWriter(NodeStatus.ENCODING) {
-      it.write(toJson())
+    
+    if (changed) {
+      target.withPrintWriter(NodeStatus.ENCODING) {
+        it.write(toJson())
+      }
+      println "file written to ${target.name}"
+      changed = false
     }
-    changed = false
+    else {
+      println ("file was unchanged: ${target.name}"
+)
+    }
   }
 
   /** 

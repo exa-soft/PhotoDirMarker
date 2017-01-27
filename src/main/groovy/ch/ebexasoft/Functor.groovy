@@ -50,14 +50,14 @@ abstract class Functor {
     
     // TODO remove printing when null
       if (obj == null) {
-          println "(applyRecursiveMeFirst start: obj is null)"
+          //println "(applyRecursiveMeFirst start: obj is null)"
           return
       }
       if (action == null) {
-          println "(applyRecursiveMeFirst start: action is null)"
+          //println "(applyRecursiveMeFirst start: action is null)"
           return
       }
-      println "(applyRecursiveMeFirst start: called for $obj)"
+      //println "(applyRecursiveMeFirst start: called for $obj)"
       action (obj)
       obj?.children.each () { child ->
           //println "applyRecursiveMeFirst: recursive calling for $child"

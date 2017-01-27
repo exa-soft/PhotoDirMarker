@@ -73,8 +73,6 @@ class MyNodeStatus extends NodeStatus {
      * @return the new value, if changed; null otherwise
      */
     public List setValue (String key, String value, boolean overwrite) {
-      
-        println "called setValue with Boolean object as parameter"
         if (overwrite || !status.containsKey(key)) {
             String timestamp = MyNodeStatus.DATEFORMAT.format(new Date())
             return putStatus (key, [value, timestamp])

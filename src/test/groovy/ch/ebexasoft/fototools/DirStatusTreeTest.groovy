@@ -20,7 +20,7 @@ import ch.ebexasoft.Functor
 /**
  * @author edith
  * 
- * TODO some methods only work for paths without umlauts, therefore later test with 'fuerUli' instead of 'fuerUli'
+ * TODO some methods only work for paths without umlauts, therefore later test with 'fuerUli' instead of 'fürUli'
  */
 class DirStatusTreeTest {
 
@@ -242,14 +242,11 @@ class DirStatusTreeTest {
     }
   
     /**
-     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#initChildren()}.
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#printValue()}.
      */
     @Test
     public void testPrintValue() {
 
-        // TODO move test to work on some other dir (that has a myNodeStatus) 
-        
-        //File testRoot = new File (testSourcesWork, 'fuerUli/2016Schweden-Makro')
         File testRoot = new File (testSourcesWork, 'fürUli/2016Schweden-Makro')
         assert testRoot.exists()
         
@@ -260,12 +257,10 @@ class DirStatusTreeTest {
         
         treeStatus.myNodeStatus.putStatus('copyright', ["true", testDate])
         assertEquals (
-//            "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fuerUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
             "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
             treeStatus.myNodeStatus.printValue("copyright")
         )
-
-    }    
+    }
 
 
     /**
@@ -310,7 +305,6 @@ class DirStatusTreeTest {
 
         // test traverse with new value
         def addValueClosure = { dst ->
-            println ("addValueClosure")
             dst?.dirStatus?.status?.put('someNew', 'newValue')
         }
         def addValueRecursive = Functor.applyRecursiveMeFirst.curry(addValueClosure)
@@ -331,7 +325,7 @@ class DirStatusTreeTest {
     @Test
     public void testSetValue () {
         
-        String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fuerUli'
+        //String thisTestDir = '/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fuerUli'
         File testRoot = testSourcesWork
         assert testRoot.exists()
         DirStatusTree treeStatus = _testInitChildren(testRoot)
@@ -392,6 +386,98 @@ class DirStatusTreeTest {
     def assertContains (Map map, String key, String expected) {
         assert map.containsKey(key)
         assert map.get(key) == expected
+    }
+
+
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#writeAllFiles()}.
+     * Depends on testInitChildrenMoreLevels
+     */
+    @Test
+    public void testWriteAllFiles () {
+        
+        File testRoot = testSourcesWork
+        assert testRoot.exists()
+        DirStatusTree treeStatus = _testInitChildren(testRoot)
+    
+        String testValues = ['for-_1y2-NewValue', 'for-y1_2-NewValue', 'for--unchanged'] 
+        // change some values that do not occur in every node
+        treeStatus.setValue ('_1y2', testValues[0], false)   
+        // This should affect thisDirFileStatus.txt in fürUli/gezeigt/2016Mai, but not fürUli/gezeigt/2016Berge.
+        // So collectedFileStatus.txt changes in fürUli/gezeigt, but not in fürUli/2016Schweden-Makro.
+        // So collectedFileStatus.txt changes in fürUli/.
+        
+        // collect changed flags for the directories:
+        Map flagMap = treeStatus.collectChangedFlags()
+        /*
+        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work - collectedFileStatus.txt, value false
+        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli - collectedFileStatus.txt, value false
+        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro - thisDirFileStatus.txt, value true
+        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt - collectedFileStatus.txt, value false
+        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt, value true
+        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt, value true
+        */
+        
+        // TODO must run a "recalculate" after setting values! otherwise, all collectedFileStatus.txt will not reflect the change
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == true
+                
+        treeStatus.setValue ('y1_2', testValues[1], true)
+        // this should affect thisDirFileStatus.txt in gezeigt/2016Berge
+            
+        Map parentSt = treeStatus.dirStatus.status
+        assertContains (parentSt, '_1y2', 'true')
+        assertContains (parentSt, 'n1n2n3', 'false')
+    
+        // TODO change tests to account for changing status (should also update dirStatus)
+        
+        
+        // with the test setup, treeStatus.myNodeStatus is null (because top dir has no pictures),
+        // so none of the tests must check treeStatus.myNodeStatus.status....
+        // We can check a grandchild instead:
+    
+        def DirStatusTree firstGrandchild = treeStatus.children[0].children[0]
+        
+        // overwrite existing value (last param true)
+        treeStatus.setValue('y1y2y3', 'newValue', true)
+        //assert treeStatus.myNodeStatus.status.y1y2y3[0] == 'newValue'
+        assert firstGrandchild.myNodeStatus.status.y1y2y3[0] == 'newValue'
+        treeStatus.children.each { child ->
+            if (child.myNodeStatus?.status) 
+                assert child.myNodeStatus?.status.y1y2y3[0] == 'newValue'
+        }
+        firstGrandchild.children.each { child ->
+            if (child.myNodeStatus?.status)
+                assert child.myNodeStatus?.status.y1y2y3[0] == 'newValue'
+        }
+    
+        // existing value, do not overwrite (last param false)
+        treeStatus.setValue('n1n2n3', 'someNew', false)
+        assert firstGrandchild.myNodeStatus?.status.n1n2n3[0] == 'false'
+        treeStatus.children.each { child ->
+            if (child.myNodeStatus?.status) 
+                assert child.myNodeStatus?.getStatus('n1n2n3')[0] == 'false'
+        }
+        firstGrandchild.children.each { child ->
+            if (child.myNodeStatus?.status)
+                assert child.myNodeStatus?.getStatus('n1n2n3')[0] == 'false'
+        }
+    
+        // add new value
+        String newKey = '_4'
+        String newValue = 'someNew'
+        assert firstGrandchild != null
+        assert firstGrandchild.myNodeStatus.getStatus(newKey) == null
+        treeStatus.setValue(newKey, newValue, false)
+        assert firstGrandchild.myNodeStatus.getStatus(newKey)[0] == newValue  // value [1] is a timestamp
+        assertEquals 1, treeStatus.children.size() 
+        treeStatus.children.each { child ->
+            if (child.myNodeStatus?.status)
+                assert child.myNodeStatus?.getStatus(newKey)[0] == newValue
+        }
     }
 
 }
