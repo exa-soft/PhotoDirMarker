@@ -57,7 +57,9 @@ class MyNodeStatus extends NodeStatus {
         MyNodeStatus my = new MyNodeStatus(parentDir)
         assert obj instanceof Map
         assert my instanceof NodeStatus
-        NodeStatus.fillFromMap (obj, my)
+        NodeStatus.fillFromMap (obj, my)  // fillFromMap sets changed flag to true, 
+        my.changed = false  // but object has just been read from file, so it not changed
+        
         // TODO should we warn if obj.parentDir not equals parentDir? (file in wrong directory)
         my.parentDir = parentDir.absoluteFile
         return my

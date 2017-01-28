@@ -167,7 +167,7 @@ abstract class NodeStatus {
 
 
   /**
-   * Write this node to the given file in JSON format
+   * Write this node to the given file in JSON format.
    */
   def toFile (File target) {
     
@@ -179,8 +179,7 @@ abstract class NodeStatus {
       changed = false
     }
     else {
-      println ("file was unchanged: ${target.name}"
-)
+      println ("file was unchanged: ${target.name}")
     }
   }
 

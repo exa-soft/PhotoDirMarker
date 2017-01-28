@@ -68,63 +68,22 @@ class DirStatusTree {
                 int keySize = recollect()
                 println "Collected keys: there are $keySize keys"
                 
-                dirStatus.toFile()
-                println "written to file: dirStatus for $parentDir"
+//                dirStatus.toFile()
+//                println "written to file: dirStatus for $parentDir"
             }   // if there are children
            
         }
     }
     
     /**
-     * Traverses the tree bottom up, scanning the MyNodeStatus objects and updating the 
-     * DirStatus objects accordingly, by creating or combining values for the keys. 
+     * Traverses the tree bottom up, scanning the MyNodeStatus objects and updating the
+     * DirStatus objects accordingly, by creating or combining values for the keys.
      * @return size of the keys map
      */
-    private recollect () {
-
-        // from the children, collect all existing tag keys (we have to
-        // do this because some keys may not be present in all files)
-        Set keys = new HashSet()
-        children.each { childNode ->
-            // collect keys from both dirStatus and myNodeStatus
-            if (childNode.dirStatus != null) {
-                //println "childNode ${childNode.parentDir} has a dirStatus, collecting its keys"
-                keys.addAll (childNode.dirStatus.statusKeySet())
-            }
-            if (childNode.myNodeStatus != null) {
-                //println "childNode ${childNode.parentDir} has a myNodeStatus, collecting its keys"
-                keys.addAll (childNode.myNodeStatus.statusKeySet())
-            }
-        }
-        println "all children of $parentDir combined have ${keys.size()} keys"
-//        keys.each { key ->
-//            println "- key $key"
-//        }
+    public recollect () {
       
-        // loop through the keys and collect the values from the children's dirStatus and my own myNodeStatus
-        keys.each { key ->
-            println "collecting values for key '$key'"
-            children.each { childNode ->
-                //if (childNode.dirStatus?.status != null) {
-                if (childNode.dirStatus != null) {
-                    //println "childNode ${childNode.parentDir} has a dirStatus, will combine its values"
-                    String value = childNode.dirStatus?.getStatus(key)
-                    dirStatus.combineValue (key, value)     // values in dirStatus are only Strings (true, false, etc.)
-                }
-                else {
-                    //println "childNode ${childNode.parentDir} has no dirStatus, will combine values from myNodeStatus"
-                    String[] values = childNode.myNodeStatus?.getStatus(key)     // values in myNodeStatus are String[] (first value true, false, etc., second value timestamp)
-                    dirStatus.combineValue (key, (values != null ? values[0] : null))
-                }
-            }
-            // combine my own status
-            if (myNodeStatus != null) {
-                String[] values = myNodeStatus.getStatus(key)
-                //if (values == null) println "myNodeStatus for $parentDir has no value for key $key"
-                dirStatus.combineValue (key, (values != null ? values[0] : null))
-            }
-        }
-        return keys.size()
+        def recollectRecursive = Functor.applyRecursiveChildrenFirst.curry(recollect1)
+        return recollectRecursive (this)
     }
     
     /**
@@ -318,11 +277,59 @@ class DirStatusTree {
     }
     
     /**
-     * Combines the status of the 
+     * Combines the status of the children of the given treeObj into its dirStatus
+     * @return number of keys in dirStatus (0 if the given treeObj has no children)
      */
     private def recollect1 = { DirStatusTree treeObj -> 
+
+        if (treeObj.children.empty)
+            return 0
+            
+        // from the children, collect all existing tag keys (we have to do this because some 
+        // keys may not be present in all children)
+        Set keys = new HashSet()
+        treeObj.children.each { childNode ->
+            // collect keys from both dirStatus and myNodeStatus
+            if (childNode.dirStatus != null) {
+                //println "childNode ${childNode.parentDir} has a dirStatus, collecting its keys"
+                keys.addAll (childNode.dirStatus.statusKeySet())
+            }
+            if (childNode.myNodeStatus != null) {
+                //println "childNode ${childNode.parentDir} has a myNodeStatus, collecting its keys"
+                keys.addAll (childNode.myNodeStatus.statusKeySet())
+            }
+        }
+        println "all children of ${treeObj.parentDir} combined have ${keys.size()} keys"
+        println "keys: $keys"
         
+        // loop through the keys and collect the values from all the children's dirStatus and the treeObj's 
+        // myNodeStatus into the treeObj's dirStatus (forget the old value from treeObj's dirStatus)
+        keys.each { key -> 
+            println "collecting values for key '$key'"
+            treeObj.dirStatus.clearValue(key)
+            treeObj.children.each { childNode ->
+                //if (childNode.dirStatus?.status != null) {
+                if (childNode.dirStatus != null) {
+                    //println "childNode ${childNode.parentDir} has a dirStatus, will combine its values"
+                    String value = childNode.dirStatus?.getStatus(key)
+                    treeObj.dirStatus.combineValue (key, value)     // values in dirStatus are only Strings (true, false, etc.)
+                }
+                else {
+                    //println "childNode ${childNode.parentDir} has no dirStatus, will combine values from myNodeStatus"
+                    String[] values = childNode.myNodeStatus?.getStatus(key)     // values in myNodeStatus are String[] (first value true, false, etc., second value timestamp)
+                    treeObj.dirStatus.combineValue (key, (values != null ? values[0] : null))
+                }
+            }
+            // combine my own status
+            if (treeObj.myNodeStatus != null) {
+                String[] values = treeObj.myNodeStatus.getStatus(key)
+                //if (values == null) println "myNodeStatus for $parentDir has no value for key $key"
+                treeObj.dirStatus.combineValue (key, (values != null ? values[0] : null))
+            }
+        }
+        return treeObj.dirStatus.size()
     }
+    
 
 /*------------------------------
  * other functions
