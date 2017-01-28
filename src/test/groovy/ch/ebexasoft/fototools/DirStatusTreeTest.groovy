@@ -399,85 +399,72 @@ class DirStatusTreeTest {
         File testRoot = testSourcesWork
         assert testRoot.exists()
         DirStatusTree treeStatus = _testInitChildren(testRoot)
-    
-        String testValues = ['for-_1y2-NewValue', 'for-y1_2-NewValue', 'for--unchanged'] 
-        // change some values that do not occur in every node
-        treeStatus.setValue ('_1y2', testValues[0], false)   
-        // This should affect thisDirFileStatus.txt in fürUli/gezeigt/2016Mai, but not fürUli/gezeigt/2016Berge.
-        // So collectedFileStatus.txt changes in fürUli/gezeigt, but not in fürUli/2016Schweden-Makro.
-        // So collectedFileStatus.txt changes in fürUli/.
+
+        String testValues = ['for-_1y2-NewValue', 'for-y1_2-NewValue', 'for--unchanged']
+        
+        // set a value to every node (with overwrite=true)
+        treeStatus.setValue ('_1y2', testValues[0], true)
         
         // collect changed flags for the directories:
         Map flagMap = treeStatus.collectChangedFlags()
-        /*
-        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work - collectedFileStatus.txt, value false
-        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli - collectedFileStatus.txt, value false
-        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro - thisDirFileStatus.txt, value true
-        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt - collectedFileStatus.txt, value false
-        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt, value true
-        /data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt, value true
-        */
-        
-        // TODO must run a "recalculate" after setting values! otherwise, all collectedFileStatus.txt will not reflect the change
+        // as we have not re-collected yet, all (existing) thisDirFileStatus.txt should be changed, 
+        // all collectedFileStatus.txt unchanged
         assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == true
-                
-        treeStatus.setValue ('y1_2', testValues[1], true)
-        // this should affect thisDirFileStatus.txt in gezeigt/2016Berge
-            
-        Map parentSt = treeStatus.dirStatus.status
-        assertContains (parentSt, '_1y2', 'true')
-        assertContains (parentSt, 'n1n2n3', 'false')
-    
-        // TODO change tests to account for changing status (should also update dirStatus)
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == false
+ 
+        // re-collect -> all should now be changed
+        int keySize = treeStatus.recollect()
+        assert keySize == 27
+        flagMap = treeStatus.collectChangedFlags()
+        flagMap.each { k, v -> 
+            assert v == true
+        }
         
-        
-        // with the test setup, treeStatus.myNodeStatus is null (because top dir has no pictures),
-        // so none of the tests must check treeStatus.myNodeStatus.status....
-        // We can check a grandchild instead:
-    
-        def DirStatusTree firstGrandchild = treeStatus.children[0].children[0]
-        
-        // overwrite existing value (last param true)
-        treeStatus.setValue('y1y2y3', 'newValue', true)
-        //assert treeStatus.myNodeStatus.status.y1y2y3[0] == 'newValue'
-        assert firstGrandchild.myNodeStatus.status.y1y2y3[0] == 'newValue'
-        treeStatus.children.each { child ->
-            if (child.myNodeStatus?.status) 
-                assert child.myNodeStatus?.status.y1y2y3[0] == 'newValue'
-        }
-        firstGrandchild.children.each { child ->
-            if (child.myNodeStatus?.status)
-                assert child.myNodeStatus?.status.y1y2y3[0] == 'newValue'
-        }
-    
-        // existing value, do not overwrite (last param false)
-        treeStatus.setValue('n1n2n3', 'someNew', false)
-        assert firstGrandchild.myNodeStatus?.status.n1n2n3[0] == 'false'
-        treeStatus.children.each { child ->
-            if (child.myNodeStatus?.status) 
-                assert child.myNodeStatus?.getStatus('n1n2n3')[0] == 'false'
-        }
-        firstGrandchild.children.each { child ->
-            if (child.myNodeStatus?.status)
-                assert child.myNodeStatus?.getStatus('n1n2n3')[0] == 'false'
-        }
-    
-        // add new value
-        String newKey = '_4'
-        String newValue = 'someNew'
-        assert firstGrandchild != null
-        assert firstGrandchild.myNodeStatus.getStatus(newKey) == null
-        treeStatus.setValue(newKey, newValue, false)
-        assert firstGrandchild.myNodeStatus.getStatus(newKey)[0] == newValue  // value [1] is a timestamp
-        assertEquals 1, treeStatus.children.size() 
-        treeStatus.children.each { child ->
-            if (child.myNodeStatus?.status)
-                assert child.myNodeStatus?.getStatus(newKey)[0] == newValue
-        }
+        // change some values that do not occur in every node
+        treeStatus.setValue ('_1y2', testValues[0], false)
+        // This should affect thisDirFileStatus.txt in fürUli/gezeigt/2016Mai, but not fürUli/gezeigt/2016Berge.
+        // So collectedFileStatus.txt changes in fürUli/gezeigt, but not in fürUli/2016Schweden-Makro.
+        // So collectedFileStatus.txt changes in fürUli/ and in test root.
+        // But before re-collecting, we only see the changes in thisDirFileStatus.txt, all collectedFileStatus.txt are still unchanged
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == true   //!
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false  //!
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == false  // not yet
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == false  // not yet
+        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == false  // not yet
+
+        // now it should be as described above
+        keySize = treeStatus.recollect()
+        assert keySize == 27
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == true   //!
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false  //!
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == true   // now!
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == true   // now!
+        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == true   // now!
+
     }
 
 }
