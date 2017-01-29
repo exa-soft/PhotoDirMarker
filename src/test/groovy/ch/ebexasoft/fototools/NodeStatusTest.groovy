@@ -217,6 +217,8 @@ class NodeStatusTest {
         MyNodeStatus st = new MyNodeStatus (testDir)
         st.status['name'] = ['true', '2016-10-29T18:59:45-MESZ']
         st.status['copyright'] = ['false', '2016-12-07T05:35:57-MESZ']
+        // set changed flag to true, otherwise the file will not be written
+        st.changed = true
         
         st.toFile()
         assert testTarget.exists()

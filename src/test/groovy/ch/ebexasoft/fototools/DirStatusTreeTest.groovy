@@ -49,21 +49,26 @@ class DirStatusTreeTest {
         File testSourcesOrig = new File (testRoot, 'testDirOriginal')
         testSourcesWork = new File (testRoot, 'work')
         assert testSourcesOrig.exists()
-//        if (testSourcesWork.exists()) assert testSourcesWork.delete()
-//        assert testSourcesWork.mkdir()
-//        copyDir (testSourcesOrig.absolutePath, testSourcesWork.absolutePath)
+        if (testSourcesWork.exists()) deleteDir(testSourcesWork.absolutePath)
+        assert !testSourcesWork.exists()
+        assert testSourcesWork.mkdir()
+        copyDir (testSourcesOrig.absolutePath, testSourcesWork.absolutePath)
         
         testDate = df.parse("2016-10-29T18:59:45-MESZ")
         testDate2 = df.parse("2016-12-07T05:35:57-MESZ")
+    }
+    
+    private void deleteDir (String dirToDelete) {
+        new AntBuilder().delete (dir: dirToDelete)
     }
 
     private void copyDir (String sourceDir, String destDir) {
         new AntBuilder().copy(todir: destDir) {
             fileset(dir: sourceDir)
         }
-        // - See more at: http://www.tothenew.com/blog/copy-filesfolders-from-one-location-to-another-in-groovy/#sthash.FUyzicNb.dpuf
+        // - See more at: http://www.tothenew.com/blog/copy-filesfolders-from-one-location-to-another-in-groovy
     }
-    
+
     
     /**
      * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#DirStatusTree(java.io.File)}.
@@ -415,27 +420,25 @@ class DirStatusTreeTest {
         // all thisDirFileStatus.txt should be unchanged (are new and read from disk), all 
         // collectedFileStatus.txt should be marked as changed (because they have not yet been written to disk)
         Map flagMap = treeStatus.collectChangedFlags()
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == true
 
-        treeStatus.writeAllFiles()        
+        treeStatus.writeChangesToFiles()        
         // so far this is the same as testWriteAllFiles
         
         // check if changed flag was adjusted - we expect only false now
         flagMap = treeStatus.collectChangedFlags()
-        flagMap.each { k, v ->
-            assert v == false
-        }
+        flagMap.each { k, v -> assert v == false }
         
         // set a value that changes a lot of files (because it overwrites an existing value)
                 
@@ -446,61 +449,67 @@ class DirStatusTreeTest {
         flagMap = treeStatus.collectChangedFlags()
         // as we have not re-collected yet, all (existing) thisDirFileStatus.txt should be changed, 
         // all collectedFileStatus.txt unchanged
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == true
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == false
+        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == false
  
         // re-collect -> all should now be changed
         int keySize = treeStatus.recollect()
         assert keySize == 27
         flagMap = treeStatus.collectChangedFlags()
-        flagMap.each { k, v -> 
-            assert v == true
-        }
+        flagMap.each { k, v -> assert v == true }
+        
+        // write the changes - now all should be unchanged
+        treeStatus.writeChangesToFiles()
+        flagMap = treeStatus.collectChangedFlags()
+        flagMap.each { k, v -> assert v == false }
         
         // change some values that do not occur in every node
         treeStatus.setValue ('_1y2', testValues[0], false)
-        // This should affect thisDirFileStatus.txt in fürUli/gezeigt/2016Berge, but not fürUli/gezeigt/2016Mai.
+        // This should affect thisDirFileStatus.txt in fürUli/gezeigt/2016Berge and in fürUli/2016Schweden-Makro, 
+        // but not fürUli/gezeigt/2016Mai.
         // So collectedFileStatus.txt changes in fürUli/gezeigt, but not in fürUli/2016Schweden-Makro.
         // So collectedFileStatus.txt changes in fürUli/ and in test root.
         // But before re-collecting, we only see the changes in thisDirFileStatus.txt, all collectedFileStatus.txt are still unchanged
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == true   //!
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == false  //!
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == false  // not yet
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == false  // not yet
-        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == false  // not yet
+        flagMap = treeStatus.collectChangedFlags()
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == true   // tag newly created
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == false  //! tag existed, unchanged
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == false  // not yet
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == true  // tag newly created
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == false  // not yet
+        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == false  // not yet
 
         // now it should be as described above
         keySize = treeStatus.recollect()
         assert keySize == 27
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == true   //!
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false  //!
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == true   // now!
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == true   // now!
-        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == true   // now!
+        flagMap = treeStatus.collectChangedFlags()
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == true  // as before
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == false   // as before
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == true   // now!
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == true  // as before
+        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == true   // now!
+        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
+        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == true   // now!
 
     }
 
@@ -509,32 +518,56 @@ class DirStatusTreeTest {
      * Depends on testInitChildrenMoreLevels
      */
     @Test
-    public void testWriteAllFiles () {
+    public void testWriteChangesToFiles () {
       
-        File testRoot = testSourcesWork
+        File testRoot = testSourcesWork.absoluteFile
         assert testRoot.exists()
-        DirStatusTree treeStatus = _testInitChildren(testRoot)
+        DirStatusTree treeStatus = _testInitChildren(testSourcesWork)
         String[] testValues = ['for-y1_2-NewValue', 'for-_1y2-NewValue', 'for--unchanged']
   
         // all thisDirFileStatus.txt should be unchanged (are new and read from disk), all
         // collectedFileStatus.txt should be marked as changed (because they have not yet been written to disk)
+        String[] unchangedFilesPaths = [
+            '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt',
+            '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt',
+            '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt',
+        ]
+        String[] changedFilesPaths = [
+            '/fürUli/gezeigt/collectedFileStatus.txt',
+            '/fürUli/collectedFileStatus.txt',
+            '/collectedFileStatus.txt',
+        ]
+        String[] nonexistingFilesPaths = [
+            '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt',
+            '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt',
+            '/fürUli/gezeigt/thisDirFileStatus.txt',
+            '/fürUli/2016Schweden-Makro/collectedFileStatus.txt',
+            '/fürUli/thisDirFileStatus.txt',
+            '/thisDirFileStatus.txt',
+        ]
         Map flagMap = treeStatus.collectChangedFlags()
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt - collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro - collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli - collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + ' - thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + ' - collectedFileStatus.txt'] == true
+        unchangedFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == false
+        }
+        changedFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == true
+        }
+        nonexistingFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == null
+        }
   
-        treeStatus.writeAllFiles()
-        assert (new File (testSourcesWork, '/fürUli/gezeigt/collectedFileStatus.txt')).exists()
-        assert (new File (testSourcesWork, '/fürUli/collectedFileStatus.txt')).exists()
-        assert (new File (testSourcesWork, '/collectedFileStatus.txt')).exists()
+        // to be sure which files will be written, delete them all and then write the changes
+        // and see if the correct files appear
+        [changedFilesPaths, unchangedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
+            new File (testRoot, path).delete()
+        }
+
+        treeStatus.writeChangesToFiles()
+        changedFilesPaths.each { path ->
+            assert (new File (testRoot, path)).exists()
+        }
+        [unchangedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
+            assert !((new File (testRoot, path)).exists())
+        }
     }
 }

@@ -133,12 +133,12 @@ class DirStatusTree {
     
     
     /**
-     * Writes all dirStatus objects to their files (recursively)
+     * Writes all changed dirStatus and myObjectStatus objects to their files (recursively).
      */
-    def writeAllFiles () {
+    def writeChangesToFiles () {
         
-        def toFileAll = Functor.applyRecursiveMeFirst.curry(toFile1)
-        toFileAll (this)
+        def toFile = Functor.applyRecursiveMeFirst.curry(toFile1)
+        toFile (this)
     }
 
     // TODO test print
@@ -264,13 +264,14 @@ class DirStatusTree {
     private def collectChangedFlags1 = { DirStatusTree treeObj, Map collectedFlags ->
 
         println "collectChangedFlags for ${treeObj.parentDir}"
+        String sep = treeObj.parentDir.separator
         if (treeObj.myNodeStatus) {
-            String key = treeObj.myNodeStatus.parentDir.path + " - " + MyNodeStatus.FILENAME
+            String key = treeObj.myNodeStatus.parentDir.path + sep + MyNodeStatus.FILENAME
             collectedFlags.put (key, treeObj.myNodeStatus.changed)
             println "(collectChangedFlags1) added to map: key $key, value ${treeObj.myNodeStatus.changed}"
         }
         if (treeObj.dirStatus) {
-            String key = treeObj.dirStatus.parentDir.path + " - " + DirStatus.FILENAME
+            String key = treeObj.dirStatus.parentDir.path + sep + DirStatus.FILENAME
             collectedFlags.put (key, treeObj.dirStatus.changed)
             println "(collectChangedFlags1) added to map: key $key, value ${treeObj.dirStatus.changed}"
         }
