@@ -31,6 +31,7 @@ class NodeStatusTest {
 	@Before
 	void before() {
         resourcesDir = new File ('src/test/resources')
+        //testRoot = new File("/home/edith/Bilder/fuerUli")
         testRoot = new File("/home/edith/Bilder/fürUli")
         testDate = df.parse("2016-10-29T18:59:45-MESZ")
         testDate2 = df.parse("2016-12-07T05:35:57-MESZ")
@@ -49,17 +50,25 @@ class NodeStatusTest {
 		assertNotNull (json)
 		println "json String:\n$json"
 		assertTrue (System.out instanceof PrintStream)
+    // LATER this test fails because of encoding issue in StreamingJsonBuilder, see top of NodeStatus.groovy
 		assertEquals ( 
 '''{
-    "dir": "/home/edith/Bilder/f\u00fcrUli",
+    "dir": "/home/edith/Bilder/fürUli",
     "status": {
         
     }
 }''', json)
+//    assertEquals (
+//      '''{
+//    "dir": "/home/edith/Bilder/f\u00fcrUli",
+//    "status": {
+//        
+//    }
+//}''', json)
         // TODO why is not stored: "dir": "/home/edith/Bilder/fürUli",
         
-        treeStatus.status['name'] = ["true", testDate]
-        treeStatus.status['copyright'] = ["false", testDate2]
+        treeStatus.putStatus('name', ["true", testDate])
+        treeStatus.putStatus('copyright', ["false", testDate2])
         
         json = treeStatus.toJson()
         assertNotNull (json)
@@ -69,11 +78,24 @@ class NodeStatusTest {
 '''{
     "dir": "/home/edith/Bilder/fürUli",
     "status": {
-        "name": ["true", "2016-10-29T18:59:45-MESZ"],
-        "copyright": ["false", "2016-12-07T05:35:57-MESZ"]
+        "name": [
+            "true", 
+            "2016-10-29T18:59:45-MESZ"
+        ],
+        "copyright": [
+            "false", 
+            "2016-12-07T05:35:57-MESZ"
+        ]
     }
 }''', json)
         
+//        '''{
+//    "dir": "/home/edith/Bilder/fürUli",
+//    "status": {
+//        "name": ["true", "2016-10-29T18:59:45-MESZ"],
+//        "copyright": ["false", "2016-12-07T05:35:57-MESZ"]
+//    }
+//}'''
 	}
 
     /**
@@ -195,11 +217,13 @@ class NodeStatusTest {
         MyNodeStatus st = new MyNodeStatus (testDir)
         st.status['name'] = ['true', '2016-10-29T18:59:45-MESZ']
         st.status['copyright'] = ['false', '2016-12-07T05:35:57-MESZ']
+        // set changed flag to true, otherwise the file will not be written
+        st.changed = true
         
         st.toFile()
         assert testTarget.exists()
                 
-        String fileContents = testTarget.getText('UTF-8')
+        String fileContents = testTarget.getText(NodeStatus.ENCODING)
         assertEquals '''{
     "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/jsonTarget1",
     "status": {

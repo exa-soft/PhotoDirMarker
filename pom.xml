@@ -22,7 +22,7 @@
   <subproject.name>PhotoDir Marker</subproject.name>
 
   <!-- specify groupId followed by artifactId, replacing '.' by '/' -->
-  <path.artifact>ch.ebexasoft.fototools/photodir-marker</path.artifact>
+  <path.artifact>ch/ebexasoft/fototools/photodir-marker</path.artifact>
 
   <!-- Usually there is no need to change the variables below. If your project
     uses different paths for Git and Sites, you may introduce additional variables
@@ -213,17 +213,19 @@
     </configuration>
    </plugin>
 
+    <!--  add empty report set to prevent plugin from running -->
+   <!-- 
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-changelog-plugin</artifactId>
-    <!--  add empty report set to prevent plugin from running -->
     <reportSets>
      <reportSet>
       <reports></reports>
      </reportSet>
     </reportSets>
    </plugin>
-  
+   -->
+   
   </plugins>
  </reporting>
 

@@ -34,7 +34,7 @@ class PhotoDirMarkerTest {
     /**
      * Test method for {@link ch.ebexasoft.fototools.MarkerTool#main(java.lang.String[])}.
      */
-    @Test
+    // @Test
     public void testMain() {
         
         File groovyMarkerSource = new File (sourceRoot, 'ch/ebexasoft/fototools/PhotoDirMarker.groovy')

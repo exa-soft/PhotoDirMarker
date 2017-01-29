@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ch.ebexasoft.fototools
 
 import groovy.io.FileType
@@ -65,7 +62,7 @@ def fotoDirsList1 = []
 /*
 String fileContents = new File('/path/to/file').text
 If you need to specify the character encoding, use the following instead:
-String fileContents = new File('/path/to/file').getText('UTF-8')
+String fileContents = new File('/path/to/file').getText(NodeStatus.ENCODING)
 
 new File( folder, 'file.txt' ).withWriterAppend { w ->
   w << "Some text\n"

@@ -1,8 +1,10 @@
+package ch.ebexasoft.fototools
+
 /**
- * 
+ * Script to be called from command line. Option -help or no option prints usage.
+ *
  * @author edith
  */
-package ch.ebexasoft.fototools
 
 //class PhotoDirMarker {
 //
@@ -111,7 +113,8 @@ else {
     switch (options) {
         case (options.c):
             clearValue (dirStatusTree, taglist)
-            dirStatusTree.writeAllFiles()
+            dirStatusTree.recollect()
+            dirStatusTree.writeChangesToFiles()
             break
         case (options.i):
         case (options.m):
@@ -120,7 +123,8 @@ else {
         default:
             def count = setValue (dirStatusTree, taglist, value)
             println "worked on $count tags: set '$value' to the following tags: '$tags'"
-            dirStatusTree.writeAllFiles()
+            dirStatusTree.recollect()
+            dirStatusTree.writeChangesToFiles()
             break        
     }
 }
@@ -133,9 +137,13 @@ else {
  */
 def print (DirStatusTree statusTree, String[] tags) {
     
+//    for (tagName in tags) {
+//        statusTree.print (tags)
+//    }
     for (tagName in tags) {
-        statusTree.print (tags)
+        statusTree.print (tagName)
     }
+
 }
 
 // TODO convert setting a value or clearing a value to a closure, or use a method parameter, then combine setValue and clearValue methods 
@@ -155,6 +163,7 @@ def int setValue (DirStatusTree statusTree, String[] tags, String value) {
     
     int count = 0
     for (tagName in tags) {
+        println "\nsetting tag '$tagName' to value '$value'"
         statusTree.setValue (tagName, value, true)   // true to overwrite
         count++
     }
