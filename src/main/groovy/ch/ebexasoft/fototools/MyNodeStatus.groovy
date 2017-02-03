@@ -85,14 +85,14 @@ class MyNodeStatus extends NodeStatus {
     /**
      * @param key
      * @param value the value as String (will be added to the map together with a time-stamp)
-     * @return
+     * @return the new value (list of String and Date)
      * @see java.util.Map#put(java.lang.Object, java.lang.Object)
      */
-    def Object putStatus(String key, String value) {
+    def List Status(String key, String value) {
       List l = createValueWithDate (value)
       return status (key, l)
     }
-    
+        
     /**
      * Create a list with a value and the date
      * @param value   value

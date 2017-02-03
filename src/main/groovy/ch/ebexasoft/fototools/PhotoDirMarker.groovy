@@ -146,12 +146,6 @@ def print (DirStatusTree statusTree, String[] tags) {
 
 }
 
-// TODO convert setting a value or clearing a value to a closure, or use a method parameter, then combine setValue and clearValue methods 
- 
-// TODO can we convert this to a closure, to call it for each tag separately?
-// TODO should we give rootDir, recursive, tags as parameters into the functions?
-
-
 /**
  * Set a value recursively. Uses values set in script: 
  * dirStatusTree object to work on
@@ -170,36 +164,19 @@ def int setValue (DirStatusTree statusTree, String[] tags, String value) {
     return count
 }
 
-  
 /**
- * Set a value recursively 
- * @param rootDir   rootdir where to start
+ * Clear a value recursively. Uses values set in script:
+ * @param statusTree object to work on
  * @param tags      taglist array of tags to work with
- * @param overwrite true to overwrite existing values, false to keep them
- * @return      count how many values have been set
+ * @return      count how many values have been cleared
  */
-//private int setValueRecursive (File rootDir, String[] tags, boolean overwrite) {
-private int setValueRecursive (File rootDir, String[] tags, boolean overwrite) {
+def int clearValue (DirStatusTree statusTree, String[] tags) {
     
-    println "setValueRecursive (overwrite=$overwrite) on $rootDir, for tags $tags"
-    
-    // TODO implement, using setValueThisDir (dir, tags, overwrite)
-    
-}
-
-
-/**
- * Set a value recursively
- * @param rootDir   rootdir where to start
- * @param tags      taglist array of tags to work with
- * @param overwrite true to overwrite existing values, false to keep them
- * @return      count how many values have been set
- */
-private int setValueThisDir (File dir, String[] tags, boolean overwrite) {
-    
-    println "setValueThisDir (overwrite=$overwrite) on $dir, for tags $tags"
-    // TODO implement setValueThisDir:
-    // change all tags
-    
-    // write to file
+    int count = 0
+    for (tagName in tags) {
+        println "\nsetting tag '$tagName' to value '$value'"
+        statusTree.setValue (tagName, value, true)   // true to overwrite
+        count++
+    }
+    return count
 }
