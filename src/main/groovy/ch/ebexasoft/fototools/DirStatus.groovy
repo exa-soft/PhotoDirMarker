@@ -83,27 +83,4 @@ class DirStatus extends NodeStatus {
       }
     }
     
-    /**
-     * Same as {@link #combineValue (String, String), but the value parameter can be
-     * given as array (first element the tag value, second element the date/time).
-     * If values
-     * @param key       the key
-     * @param values     the value list (tag value, date/time)
-     */
-    def combineValueList (String key, String[] values) {
-        
-        if (values == null)
-            combineValue (key, null)
-        else
-            combineValue (key, values[0])
-    }
-    
-    /**
-     * Clears the given key (removes it from the tag list)
-     * @param key       the key
-     */
-    def clearValue (String key) {
-        removeStatus(key)
-    }
-    
 }

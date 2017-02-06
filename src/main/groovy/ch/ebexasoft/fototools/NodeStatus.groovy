@@ -56,7 +56,7 @@ abstract class NodeStatus {
    * @param key	key
    * @return		formatted string
    */
-  def String printValue (String key) {
+  def String printStatus (String key) {
 
     List value = status[key]
     println "value is ${value[0]}, date is ${value[1]}"
@@ -202,21 +202,32 @@ abstract class NodeStatus {
    * value the date)</li>
    * </ul>
    * However, the values will not be tested, will only be read from the map and 
-   * put into the object (parentDir and status map).  
+   * put into the object (parentDir and status map).
+   * If a value is given for parentDirToCheck and the value in dir does not correspond, 
+   * the changed flag of the given object will be set.  
    * @param map   a map with the object
    * @param obj   the object to initialize (fill) with values from the map
+   * @param parentDirToCheck (optional) expected parent dir; if map['dir'] is not equal, obj.changed will be set true
    * @return  the filled object
    */
-  static NodeStatus fillFromMap (Map map, NodeStatus obj) {
+  static NodeStatus fillFromMap (Map map, NodeStatus obj, File parentDirToCheck = null) {
 
     assert map.keySet().contains('dir')
     assert map.keySet().contains('status')
     assert map['dir'] instanceof String
     assert map['status'] instanceof Map
 
-    obj.parentDir = new File(map['dir'])
-    //obj.status.putAll(map['status'])
     obj.putStatusAll(map['status'])
+    obj.changed = false
+    File f = new File(map['dir']).absoluteFile
+    obj.parentDir = f
+    
+    if (parentDirToCheck != null && !parentDirToCheck.equals(f)) {
+        System.err.println ("parentDir in file ${MyNodeStatus.FILENAME} was $f instead of ${parentDirToCheck}, will be adjusted")
+        obj.parentDir = parentDirToCheck
+        obj.changed = true
+    }
+    return obj
   }
 
   def String toString () {

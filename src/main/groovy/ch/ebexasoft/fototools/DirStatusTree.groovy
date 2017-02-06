@@ -131,6 +131,20 @@ class DirStatusTree {
         setTheseValuesRecursive (this)
     }
     
+    /**
+     * Clears a value on the tree (recursively). The value is cleared from the myNodeStatus 
+     * objects, as well as from the DirStatus objects (although when recollecting, it would 
+     * not appear there anyway).  
+     * @param key
+     */
+    def clearValue (String key) {
+
+        def clearThisValueFromObj = clearValue2Obj1.rcurry (key)
+        // the new function we give to the applyRecursive... method
+        def clearThisValueRecursive = Functor.applyRecursiveChildrenFirst.curry(clearThisValueFromObj)
+        // finally, we run it with 'this' as starting value
+        clearThisValueRecursive (this)
+    }
     
     /**
      * Writes all changed dirStatus and myObjectStatus objects to their files (recursively).
@@ -218,11 +232,27 @@ class DirStatusTree {
         
         println "setValue2Obj1 (overwrite='$overwrite'): set value='$value' for key='$key', on $treeObj"
         if (treeObj?.myNodeStatus != null) {
-            def newValue = treeObj?.myNodeStatus.setValue (key, value, overwrite)
+            def newValue = treeObj?.myNodeStatus.putStatus (key, value, overwrite)
             //println "newvalue is $newValue"
         }
     }
-   
+
+    /**
+     * It works on the given treeObj and clears (in the myNodeStatus, if that is not null)
+     * the value for the given key.
+     * Note that this function will be called recursively, so it must not call its children.
+     *
+     * @param treeObj the tree object to work on
+     * @param key   the key
+     */
+    private clearValue2Obj1 = { DirStatusTree treeObj, String key ->
+        
+        println "clearValue2Obj1: clear for key='$key', on $treeObj"
+        if (treeObj?.myNodeStatus != null) {
+            def newValue = treeObj?.myNodeStatus.removeStatus (key)
+        }
+    }
+
     private printDirStatus1 = { DirStatusTree treeObj, String key ->  
     // private printDirStatus = { DirStatusTree treeObj, String[] keys ->
         if (treeObj?.dirStatus) {
@@ -307,7 +337,7 @@ class DirStatusTree {
         // myNodeStatus into the treeObj's dirStatus (forget the old value from treeObj's dirStatus)
         keys.each { key -> 
             println "collecting values for key '$key'"
-            treeObj.dirStatus.clearValue(key)
+            treeObj.dirStatus.removeStatus(key)
             treeObj.children.each { childNode ->
                 //if (childNode.dirStatus?.status != null) {
                 if (childNode.dirStatus != null) {

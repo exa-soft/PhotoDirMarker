@@ -35,7 +35,32 @@ class DirStatusTreeTest {
     Date testDate2
     
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss-zzz");
+
+    // these files exist in the test setup
+    String[] thisDirFilesPaths = [
+        '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt',
+        '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt',
+        '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt',
+    ]
+    // these files will be created when collected in the test setup
+    String[] collectedFilesPaths = [
+        '/fürUli/gezeigt/collectedFileStatus.txt',
+        '/fürUli/collectedFileStatus.txt',
+        '/collectedFileStatus.txt',
+    ]    
     
+    // all these files are expected to exist after an init
+    String[] expectedFilesPaths = [thisDirFilesPaths, collectedFilesPaths].flatten()
+
+    // all these files should never exist
+    String[] nonexistingFilesPaths = [
+        '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt',
+        '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt',
+        '/fürUli/2016Schweden-Makro/collectedFileStatus.txt',
+        '/fürUli/gezeigt/thisDirFileStatus.txt',
+        '/fürUli/thisDirFileStatus.txt',
+        '/thisDirFileStatus.txt',
+    ]
     
     /**
      * @throws java.lang.Exception
@@ -258,7 +283,7 @@ class DirStatusTreeTest {
     }
   
     /**
-     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#printValue()}.
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#printStatus()}.
      */
     @Test
     public void testPrintValue() {
@@ -274,7 +299,7 @@ class DirStatusTreeTest {
         treeStatus.myNodeStatus.putStatus('copyright', ["true", testDate])
         assertEquals (
             "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro: copyright  = true (2016-10-29T18:59:45)",
-            treeStatus.myNodeStatus.printValue("copyright")
+            treeStatus.myNodeStatus.printStatus("copyright")
         )
     }
 
@@ -420,18 +445,15 @@ class DirStatusTreeTest {
         // all thisDirFileStatus.txt should be unchanged (are new and read from disk), all 
         // collectedFileStatus.txt should be marked as changed (because they have not yet been written to disk)
         Map flagMap = treeStatus.collectChangedFlags()
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == true
+        thisDirFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == false
+        }
+        collectedFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == true
+        }
+        nonexistingFilesPaths.each() { path ->
+            assert flagMap[testRoot.absolutePath + path] == null
+        }
 
         treeStatus.writeChangesToFiles()        
         // so far this is the same as testWriteAllFiles
@@ -449,18 +471,15 @@ class DirStatusTreeTest {
         flagMap = treeStatus.collectChangedFlags()
         // as we have not re-collected yet, all (existing) thisDirFileStatus.txt should be changed, 
         // all collectedFileStatus.txt unchanged
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == true
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == false
-        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == false
+        thisDirFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == true
+        }
+        collectedFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == false
+        }
+        nonexistingFilesPaths.each() { path ->
+            assert flagMap[testRoot.absolutePath + path] == null
+        }
  
         // re-collect -> all should now be changed
         int keySize = treeStatus.recollect()
@@ -482,34 +501,28 @@ class DirStatusTreeTest {
         // But before re-collecting, we only see the changes in thisDirFileStatus.txt, all collectedFileStatus.txt are still unchanged
         flagMap = treeStatus.collectChangedFlags()
         assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == true   // tag newly created
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
         assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == false  //! tag existed, unchanged
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == false  // not yet
         assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == true  // tag newly created
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == false  // not yet
-        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == false  // not yet
+        collectedFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == false  // not yet
+        }
+        nonexistingFilesPaths.each() { path ->
+            assert flagMap[testRoot.absolutePath + path] == null
+        }
 
         // now it should be as described above
         keySize = treeStatus.recollect()
         assert keySize == 27
         flagMap = treeStatus.collectChangedFlags()
         assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt'] == true  // as before
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt'] == null
         assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt'] == false   // as before
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/gezeigt/collectedFileStatus.txt'] == true   // now!
         assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt'] == true  // as before
-        assert flagMap[testRoot.absolutePath + '/fürUli/2016Schweden-Makro/collectedFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/fürUli/collectedFileStatus.txt'] == true   // now!
-        assert flagMap[testRoot.absolutePath + '/thisDirFileStatus.txt'] == null
-        assert flagMap[testRoot.absolutePath + '/collectedFileStatus.txt'] == true   // now!
+        collectedFilesPaths.each { path ->
+            assert flagMap[testRoot.absolutePath + path] == true   // now!
+        }
+        nonexistingFilesPaths.each() { path ->
+            assert flagMap[testRoot.absolutePath + path] == null
+        }
 
     }
 
@@ -527,29 +540,11 @@ class DirStatusTreeTest {
   
         // all thisDirFileStatus.txt should be unchanged (are new and read from disk), all
         // collectedFileStatus.txt should be marked as changed (because they have not yet been written to disk)
-        String[] unchangedFilesPaths = [
-            '/fürUli/gezeigt/2016Mai/thisDirFileStatus.txt',
-            '/fürUli/gezeigt/2016Berge/thisDirFileStatus.txt',
-            '/fürUli/2016Schweden-Makro/thisDirFileStatus.txt',
-        ]
-        String[] changedFilesPaths = [
-            '/fürUli/gezeigt/collectedFileStatus.txt',
-            '/fürUli/collectedFileStatus.txt',
-            '/collectedFileStatus.txt',
-        ]
-        String[] nonexistingFilesPaths = [
-            '/fürUli/gezeigt/2016Mai/collectedFileStatus.txt',
-            '/fürUli/gezeigt/2016Berge/collectedFileStatus.txt',
-            '/fürUli/gezeigt/thisDirFileStatus.txt',
-            '/fürUli/2016Schweden-Makro/collectedFileStatus.txt',
-            '/fürUli/thisDirFileStatus.txt',
-            '/thisDirFileStatus.txt',
-        ]
         Map flagMap = treeStatus.collectChangedFlags()
-        unchangedFilesPaths.each { path ->
+        thisDirFilesPaths.each { path ->
             assert flagMap[testRoot.absolutePath + path] == false
         }
-        changedFilesPaths.each { path ->
+        collectedFilesPaths.each { path ->
             assert flagMap[testRoot.absolutePath + path] == true
         }
         nonexistingFilesPaths.each { path ->
@@ -558,16 +553,123 @@ class DirStatusTreeTest {
   
         // to be sure which files will be written, delete them all and then write the changes
         // and see if the correct files appear
-        [changedFilesPaths, unchangedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
+        [expectedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
             new File (testRoot, path).delete()
         }
 
         treeStatus.writeChangesToFiles()
-        changedFilesPaths.each { path ->
+        collectedFilesPaths.each { path ->
             assert (new File (testRoot, path)).exists()
         }
-        [unchangedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
+        [thisDirFilesPaths, nonexistingFilesPaths].flatten().each { path ->
             assert !((new File (testRoot, path)).exists())
         }
     }
+    
+    // TODO implement test for rewrite
+    
+    
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#writeAllFiles()}.
+     * Depends on testInitChildrenMoreLevels
+     * Expected: If no thisDirFileStatus.txt exists, none will be created even with 
+     * recollect,and no collectedFileStatus.txt will be written. 
+     */
+    @Test
+    public void testInitFiles1 () {
+      
+        File testRoot = testSourcesWork.absoluteFile
+        assert testRoot.exists()
+        
+        // To test that none files will be collected if no thisDirFileStatus.txt exist,          
+        // make a directory where no such files exist -> delete them all
+        [expectedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
+            File f = new File (testRoot, path)
+            f.delete()
+            assert !f.exists()
+        }
+        
+        // recollect, then make sure that only the thisDirFileStatus.txt files have been initialized
+        DirStatusTree treeStatus = _testInitChildren(testSourcesWork)
+        treeStatus.recollect()
+        treeStatus.writeChangesToFiles()
+        
+        thisDirFilesPaths.each { path ->
+            assert (new File (testRoot, path)).exists()
+        }
+        collectedFilesPaths.each { path ->
+            assert !(new File (testRoot, path)).exists()
+        }
+        nonexistingFilesPaths.each { path ->
+            assert !(new File (testRoot, path)).exists()
+        }
+    }
+
+    
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#writeAllFiles()}.
+     * Depends on testInitChildrenMoreLevels
+     * Only if something is initialized with init, then thisDirFileStatus.txt will 
+     * be written, and collectedFileStatus.txt as well.
+     */
+    @Test
+    public void testInitFiles2 () {
+      
+        File testRoot = testSourcesWork.absoluteFile
+        assert testRoot.exists()
+
+        // To test that none files will be collected if no thisDirFileStatus.txt exist,
+        // make a directory where no such files exist -> delete them all
+        [expectedFilesPaths, nonexistingFilesPaths].flatten().each { path ->
+            File f = new File (testRoot, path)
+            f.delete()
+            assert !f.exists()
+        }
+
+        // init a value, then make sure the correct files exist
+        DirStatusTree treeStatus = _testInitChildren(testSourcesWork)
+        treeStatus.setValue('y1y2', 'true', false)
+        treeStatus.recollect()
+        treeStatus.writeChangesToFiles()
+        
+        expectedFilesPaths.each { path ->
+            assert new File (testRoot, path).exists()
+        }
+        nonexistingFilesPaths.each { path ->
+            assert !(new File (testRoot, path)).exists()
+        }
+    }
+
+    /**
+     * Test method for {@link ch.ebexasoft.fototools.DirStatusTree#writeAllFiles()}.
+     * Depends on testInitChildrenMoreLevels
+     */
+    @Test
+    public void testRefreshFiles () {
+      
+        File testRoot = testSourcesWork.absoluteFile
+        assert testRoot.exists()
+                
+        // make a directory where no collectedFileStatus.txt files exist -> delete them all
+        collectedFilesPaths.each { path ->
+            File f = new File (testRoot, path)
+            f.delete()
+            assert !f.exists()
+        }
+        
+        // do what the 'fresh' option on PhotoDirMarker would do: init recollect and write
+        DirStatusTree treeStatus = _testInitChildren(testSourcesWork)
+        treeStatus.recollect()
+        treeStatus.writeChangesToFiles()
+        
+        // check that the collected files now exist
+        expectedFilesPaths.each { path ->
+            assert new File (testRoot, path).exists()
+        }
+        nonexistingFilesPaths.each { path ->
+            assert !(new File (testRoot, path)).exists()
+        }
+    }
+
+    
 }

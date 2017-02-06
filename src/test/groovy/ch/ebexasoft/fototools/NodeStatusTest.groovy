@@ -39,7 +39,7 @@ class NodeStatusTest {
 	
 	
 	/**
-	 * Test method for {@link ch.ebexasoft.fototools.MyNodeStatus#printValue(java.lang.String)}.
+	 * Test method for {@link ch.ebexasoft.fototools.MyNodeStatus#printStatus(java.lang.String)}.
 	 */
 	@Test
 	public void testPrintJson() {

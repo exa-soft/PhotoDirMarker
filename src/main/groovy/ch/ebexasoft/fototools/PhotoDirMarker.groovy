@@ -17,10 +17,11 @@ def cli = new CliBuilder(usage: '''groovy PhotoDirMarker [-d directory] options 
 
 ''')
 
-cli.width = 100
+cli.width = 80
 
 cli.d (longOpt: 'dir', args: 1, argName: 'directory', 'path to root directory for operation (without -d option, current directory is used)')
 
+cli.f (longOpt: 'fresh', 'does not change any tags, but re-writes the collectedFileStatus.txt files') 
 cli.i (longOpt: 'init', args: 1, argName: 'tags', 'initialize non-existing tags (set to "false"), does not change existing values')
 cli.m (longOpt: 'mark', args: 1, argName: 'tags', 'set given tags to "true" (creating non-existing ones)')
 cli.u (longOpt: 'unmark', args: 1, argName: 'tags', 'set given tags to "false" (creating non-existing ones)')
@@ -41,11 +42,15 @@ cli.h (longOpt: 'help', 'display usage')
 def options = cli.parse(args)
 assert options // would be null (false) on failure
 
-if (options.h) cli.usage()
+if (options.h) {
+  cli.usage()
+  System.exit(0)
+}
 
 // define workdir
 println "have '-d' option: ${options.d}"
 def File workdir = new File (options.d ?: '.')  // use current directory if no d option defined
+println "will work on dir ${workdir}"
 
 // define recursive
 def boolean recursive = true
@@ -87,6 +92,7 @@ if (!tags) {
     System.exit(-15)
 
 }
+
 def String[] taglist = tags.split()
 println "will run for the following tags: "
 taglist.each {
@@ -109,10 +115,11 @@ if (options.p) {
     print (dirStatusTree, taglist)
 }
 else {
-    def int countWork = 0
     switch (options) {
         case (options.c):
             clearValue (dirStatusTree, taglist)
+            // fallthrough is intentional (clearValue also needs recollect & write)
+        case (options.f):   
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
             break
@@ -128,6 +135,10 @@ else {
             break        
     }
 }
+
+System.exit(0)
+
+//-------------------------------------------------------------------------
 
 /**
  * Prints the status of the tags in tagList
