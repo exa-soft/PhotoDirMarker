@@ -13,11 +13,11 @@ package ch.ebexasoft.fototools
 
 // specify parameters for command-line call
 def cli = new CliBuilder(usage: '''groovy PhotoDirMarker [-d directory] options tags [-v value]
-    tags: tag or tags; if multiple tags, separate them with spaces and enclose in double quotation marks: "tag1 another number3"
+    tags: tag or tags; if multiple tags, separate them with commas (no spaces!) and enclose in double quotation marks: "tag1,another,number3"
 
 ''')
 
-cli.width = 80
+cli.width = 79
 
 cli.d (longOpt: 'dir', args: 1, argName: 'directory', 'path to root directory for operation (without -d option, current directory is used)')
 
@@ -65,7 +65,7 @@ else println "will work recursively, starting from '$workdir'"
 def String tags
 def String value
 def overwrite = true
-if (options.i) { tags = options.i; value = 'true'; overwrite = false } 
+if (options.i) { tags = options.i; value = 'false'; overwrite = false } 
 if (options.m) { tags = options.m; value = 'true' }
 if (options.u) { tags = options.u; value = 'false' }
 if (options.c) tags = options.c
@@ -93,7 +93,7 @@ if (!tags) {
 
 }
 
-def String[] taglist = tags.split()
+def String[] taglist = tags.split(',')
 println "will run for the following tags: "
 taglist.each {
     println "- tag '$it'"
@@ -102,7 +102,7 @@ taglist.each {
 // collect status into object
 def DirStatusTree dirStatusTree = new DirStatusTree(workdir)
 dirStatusTree.initChildren()
-println "collected status of ${workdir.absolutePath}"
+//println "collected status of ${workdir.absolutePath}"
 
 
 // call the methods for the options
@@ -129,7 +129,7 @@ else {
         case (options.s):
         default:
             def count = setValue (dirStatusTree, taglist, value)
-            println "worked on $count tags: set '$value' to the following tags: '$tags'"
+            println "\nWorked on $count tags: set '$value' to the following tags: '$tags'."
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
             break        

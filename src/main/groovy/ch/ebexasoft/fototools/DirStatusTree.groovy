@@ -230,7 +230,7 @@ class DirStatusTree {
      */
     private setValue2Obj1 = { DirStatusTree treeObj, String key, String value, boolean overwrite ->
         
-        println "setValue2Obj1 (overwrite='$overwrite'): set value='$value' for key='$key', on $treeObj"
+        // println "setValue2Obj1 (overwrite='$overwrite'): set value='$value' for key='$key', on $treeObj"
         if (treeObj?.myNodeStatus != null) {
             def newValue = treeObj?.myNodeStatus.putStatus (key, value, overwrite)
             //println "newvalue is $newValue"
@@ -283,11 +283,11 @@ class DirStatusTree {
         //println "toFile1 for ${treeObj.parentDir}"
         if (treeObj.myNodeStatus) {
             treeObj.myNodeStatus.toFile()
-            println "(toFile1) written myNodeStatus to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
+            println "written myNodeStatus to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
         }
         if (treeObj.dirStatus) {
             treeObj.dirStatus.toFile()
-            println "(toFile1) written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
+            println "written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
         }
     }
     
