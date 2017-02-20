@@ -1,5 +1,5 @@
 {
-    "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/testDirOriginal/fürUli/2016Schweden-Makro",
+    "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/2016Schweden-Makro",
     "status": {
         "y1y2y3": ["true", "2016-10-31T11:23:57-CET"],
         "y1y2n3": ["false", "2016-10-31T11:23:57-CET"],

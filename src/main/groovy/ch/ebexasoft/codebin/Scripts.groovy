@@ -47,3 +47,14 @@ ro.stellStammbaumVor()
 ahnin.stellStammbaumVor()
 
 ahnin.stellStammbaumVorVonUnten()
+
+
+String tags = "name,address,copyright,location,gps,subject,keywords,rating"
+def String[] taglist = tags.split(",")
+println "tags argument is: '$tags'"
+println "will run for the following tags: "
+taglist.each {
+    println "- tag '$it'"
+}
+
+

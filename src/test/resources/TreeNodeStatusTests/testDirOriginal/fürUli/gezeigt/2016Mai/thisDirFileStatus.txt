@@ -1,5 +1,5 @@
 {
-    "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/testDirOriginal/fürUli/gezeigt/2016Mai",
+    "dir": "/data/DevelopmentEB/Groovy/PhotoDirMarker/src/test/resources/TreeNodeStatusTests/work/fürUli/gezeigt/2016Mai",
     "status": {
         "y1y2y3": ["true", "2016-10-31T11:23:57-CET"],
         "y1y2n3": ["true", "2016-10-31T11:23:57-CET"],

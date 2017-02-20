@@ -13,14 +13,15 @@ package ch.ebexasoft.fototools
 
 // specify parameters for command-line call
 def cli = new CliBuilder(usage: '''groovy PhotoDirMarker [-d directory] options tags [-v value]
-    tags: tag or tags; if multiple tags, separate them with spaces and enclose in double quotation marks: "tag1 another number3"
+    tags: tag or tags; if multiple tags, separate them with commas (no spaces!) and enclose in double quotation marks: "tag1,another,number3"
 
 ''')
 
-cli.width = 100
+cli.width = 79
 
 cli.d (longOpt: 'dir', args: 1, argName: 'directory', 'path to root directory for operation (without -d option, current directory is used)')
 
+cli.f (longOpt: 'fresh', 'does not change any tags, but re-writes the collectedFileStatus.txt files') 
 cli.i (longOpt: 'init', args: 1, argName: 'tags', 'initialize non-existing tags (set to "false"), does not change existing values')
 cli.m (longOpt: 'mark', args: 1, argName: 'tags', 'set given tags to "true" (creating non-existing ones)')
 cli.u (longOpt: 'unmark', args: 1, argName: 'tags', 'set given tags to "false" (creating non-existing ones)')
@@ -41,11 +42,15 @@ cli.h (longOpt: 'help', 'display usage')
 def options = cli.parse(args)
 assert options // would be null (false) on failure
 
-if (options.h) cli.usage()
+if (options.h) {
+  cli.usage()
+  System.exit(0)
+}
 
 // define workdir
 println "have '-d' option: ${options.d}"
 def File workdir = new File (options.d ?: '.')  // use current directory if no d option defined
+println "will work on dir ${workdir}"
 
 // define recursive
 def boolean recursive = true
@@ -60,7 +65,7 @@ else println "will work recursively, starting from '$workdir'"
 def String tags
 def String value
 def overwrite = true
-if (options.i) { tags = options.i; value = 'true'; overwrite = false } 
+if (options.i) { tags = options.i; value = 'false'; overwrite = false } 
 if (options.m) { tags = options.m; value = 'true' }
 if (options.u) { tags = options.u; value = 'false' }
 if (options.c) tags = options.c
@@ -87,7 +92,8 @@ if (!tags) {
     System.exit(-15)
 
 }
-def String[] taglist = tags.split()
+
+def String[] taglist = tags.split(',')
 println "will run for the following tags: "
 taglist.each {
     println "- tag '$it'"
@@ -96,7 +102,7 @@ taglist.each {
 // collect status into object
 def DirStatusTree dirStatusTree = new DirStatusTree(workdir)
 dirStatusTree.initChildren()
-println "collected status of ${workdir.absolutePath}"
+//println "collected status of ${workdir.absolutePath}"
 
 
 // call the methods for the options
@@ -109,10 +115,11 @@ if (options.p) {
     print (dirStatusTree, taglist)
 }
 else {
-    def int countWork = 0
     switch (options) {
         case (options.c):
             clearValue (dirStatusTree, taglist)
+            // fallthrough is intentional (clearValue also needs recollect & write)
+        case (options.f):   
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
             break
@@ -122,12 +129,16 @@ else {
         case (options.s):
         default:
             def count = setValue (dirStatusTree, taglist, value)
-            println "worked on $count tags: set '$value' to the following tags: '$tags'"
+            println "\nWorked on $count tags: set '$value' to the following tags: '$tags'."
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
-            break        
+            break
     }
 }
+
+System.exit(0)
+
+//-------------------------------------------------------------------------
 
 /**
  * Prints the status of the tags in tagList
@@ -140,17 +151,11 @@ def print (DirStatusTree statusTree, String[] tags) {
 //    for (tagName in tags) {
 //        statusTree.print (tags)
 //    }
-    for (tagName in tags) {
-        statusTree.print (tagName)
-    }
-
+//    for (tagName in tags) {
+//       statusTree.print (tagName)
+//    }
+    statusTree.printNewMulti(tags)
 }
-
-// TODO convert setting a value or clearing a value to a closure, or use a method parameter, then combine setValue and clearValue methods 
- 
-// TODO can we convert this to a closure, to call it for each tag separately?
-// TODO should we give rootDir, recursive, tags as parameters into the functions?
-
 
 /**
  * Set a value recursively. Uses values set in script: 
@@ -170,36 +175,19 @@ def int setValue (DirStatusTree statusTree, String[] tags, String value) {
     return count
 }
 
-  
 /**
- * Set a value recursively 
- * @param rootDir   rootdir where to start
+ * Clear a value recursively. Uses values set in script:
+ * @param statusTree object to work on
  * @param tags      taglist array of tags to work with
- * @param overwrite true to overwrite existing values, false to keep them
- * @return      count how many values have been set
+ * @return      count how many values have been cleared
  */
-//private int setValueRecursive (File rootDir, String[] tags, boolean overwrite) {
-private int setValueRecursive (File rootDir, String[] tags, boolean overwrite) {
+def int clearValue (DirStatusTree statusTree, String[] tags) {
     
-    println "setValueRecursive (overwrite=$overwrite) on $rootDir, for tags $tags"
-    
-    // TODO implement, using setValueThisDir (dir, tags, overwrite)
-    
-}
-
-
-/**
- * Set a value recursively
- * @param rootDir   rootdir where to start
- * @param tags      taglist array of tags to work with
- * @param overwrite true to overwrite existing values, false to keep them
- * @return      count how many values have been set
- */
-private int setValueThisDir (File dir, String[] tags, boolean overwrite) {
-    
-    println "setValueThisDir (overwrite=$overwrite) on $dir, for tags $tags"
-    // TODO implement setValueThisDir:
-    // change all tags
-    
-    // write to file
+    int count = 0
+    for (tagName in tags) {
+        println "\nsetting tag '$tagName' to value '$value'"
+        statusTree.setValue (tagName, value, true)   // true to overwrite
+        count++
+    }
+    return count
 }

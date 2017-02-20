@@ -37,70 +37,63 @@ class MyNodeStatus extends NodeStatus {
   
     /**
      * Helper method to instantiate objects from JSON (via pure Groovy objects).
+     * Will be null if parentDir does not contain pictures.   
+     * If there are pictures, but no file exists, an object will be created and marked 
+     * as changed (so it will be later written to disk).
      * @see NodeStatus
      * @param dir   the directory where to read the file from
-     * @return  the filled object
+     * @return  the filled object, or null if parentDir does not contain pictures 
      */
     static MyNodeStatus fromDir (File parentDir) {
     
         if (!NodeUtils.containsPics(parentDir)) return null
-        
+
+        MyNodeStatus my = new MyNodeStatus(parentDir)
+        assert my instanceof NodeStatus
+
         File statusFile = new File (parentDir, FILENAME)
         if (!statusFile.exists()) {
-            System.err.println "missing status file $FILENAME in ${parentDir.absolutePath}"
-            return null
+            System.out.println "missing status file $FILENAME in ${parentDir.absolutePath}, will be created"
+            my.parentDir = parentDir.absoluteFile
+            my.changed = true
+            return my
         }
         
         def jsonSlurper = new JsonSlurper(type: JsonParserType.LAX)
         def obj = jsonSlurper.parse(statusFile, NodeStatus.ENCODING)
-                
-        MyNodeStatus my = new MyNodeStatus(parentDir)
         assert obj instanceof Map
-        assert my instanceof NodeStatus
-        NodeStatus.fillFromMap (obj, my)  // fillFromMap sets changed flag to true, 
-        my.changed = false  // but object has just been read from file, so it not changed
+        NodeStatus.fillFromMap (obj, my, parentDir.absoluteFile)
+        // this sets changed flag to true only if value for dir from file is different than parentDir.absoluteFile 
         
-        // TODO should we warn if obj.parentDir not equals parentDir? (file in wrong directory)
-        my.parentDir = parentDir.absoluteFile
         return my
     }
 
 
     /**
-     * Set a value for a specified key, together with a timestamp of the date/time when
+     * Set a value for a specified key, together with a time-stamp of the date/time when
      * it has been set.
      * @param key the key
      * @param value the value to be set
      * @param overwrite if false, the value is only set if it does not yet exist
      * @return the new value, if changed; null otherwise
      */
-    public List setValue (String key, String value, boolean overwrite) {
+    public List putStatus (String key, String value, boolean overwrite) {
         if (overwrite || !status.containsKey(key)) {
-            String timestamp = MyNodeStatus.DATEFORMAT.format(new Date())
-            return putStatus (key, [value, timestamp])
+            List l = createValueWithDate (value)
+            return putStatus (key, l)
         }
         return null
     }
     
     /**
-     * @param key
-     * @param value the value as String (will be added to the map together with a time-stamp)
-     * @return
-     * @see java.util.Map#put(java.lang.Object, java.lang.Object)
-     */
-    def Object putStatus(String key, String value) {
-      List l = createValueWithDate (value)
-      return status (key, l)
-    }
-    
-    /**
-     * Create a list with a value and the date
+     * Create a list with a value and the date as formatted String
      * @param value   value
-     * @param date for the value (optional, default is now)
-     * @return
+     * @param date  time-stamp for the value (optional, default is now)
+     * @return the list with value and time-stamp
      */
     def List createValueWithDate (String value, Date date = new Date()) {
-      [ value, date ]
+      String timestamp = MyNodeStatus.DATEFORMAT.format(date)
+      [ value, timestamp ]
     }
     
 }

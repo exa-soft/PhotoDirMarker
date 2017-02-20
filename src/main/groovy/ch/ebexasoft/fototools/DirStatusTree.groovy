@@ -23,13 +23,16 @@ import ch.ebexasoft.Functor
  * @author edith
  *
  */
-class DirStatusTree {
-
+class DirStatusTree {  
+  
     File parentDir
     MyNodeStatus myNodeStatus
     DirStatus dirStatus
     List children = null // contains DirStatusTree objects
+    int longestDirNameLength = 120    // TODO find this longest length in tree
     
+    Map printFormats    // padding, titleFormat, lineFormat - will be initialized in initChildren
+      
     /**
      * 
      */
@@ -47,12 +50,12 @@ class DirStatusTree {
      */
     def initChildren () {
 
-        // collect children, if not already done
+        // collect children, if not already done  
         if (children == null) {
 
             // read info for the current dir (this is non-recursive)
             myNodeStatus = MyNodeStatus.fromDir(parentDir)
-            println "initialized myNodeStatus for $parentDir: $myNodeStatus"
+            // println "initialized myNodeStatus for $parentDir: $myNodeStatus"
 
             // in recursion, first look deeper: collect children
             this.children = []
@@ -72,7 +75,22 @@ class DirStatusTree {
 //                println "written to file: dirStatus for $parentDir"
             }   // if there are children
            
+            initPrintFormats()
         }
+    }
+    
+    /**
+     * uses #longestDirNameLength and initalizes the map with printFormats:
+     * padding, titleFormat, lineFormat
+     */
+    def initPrintFormats () {
+      printFormats = [:]
+      printFormats.padding = " -" * (longestDirNameLength/2)
+      printFormats.titleFormat = '%1$-' + longestDirNameLength + 's : %2$-10s'
+      printFormats.lineFormat = '%1$-' + longestDirNameLength + 's : %2$-10s = %3$s\n'
+      println "padding: '${printFormats.padding}"
+      println "titleFormat: '${printFormats.titleFormat}"
+      println "lineFormat: '${printFormats.lineFormat}"
     }
     
     /**
@@ -131,6 +149,20 @@ class DirStatusTree {
         setTheseValuesRecursive (this)
     }
     
+    /**
+     * Clears a value on the tree (recursively). The value is cleared from the myNodeStatus 
+     * objects, as well as from the DirStatus objects (although when recollecting, it would 
+     * not appear there anyway).  
+     * @param key
+     */
+    def clearValue (String key) {
+
+        def clearThisValueFromObj = clearValue2Obj1.rcurry (key)
+        // the new function we give to the applyRecursive... method
+        def clearThisValueRecursive = Functor.applyRecursiveChildrenFirst.curry(clearThisValueFromObj)
+        // finally, we run it with 'this' as starting value
+        clearThisValueRecursive (this)
+    }
     
     /**
      * Writes all changed dirStatus and myObjectStatus objects to their files (recursively).
@@ -141,7 +173,13 @@ class DirStatusTree {
         toFile (this)
     }
 
-    // TODO test print
+    /**
+     * Print status of one key. If a value of 'true' or 'false' or '?' is found,
+     * recursion stops. Otherwise, the value is printed and recursion goes deeper.
+     * For printing, formats {@link #printFormats.titleFormat} and {@link #printFormats.lineFormat} 
+     * are used (with parameter in order: dir, tagname, value).
+     * @param key key for which to print status 
+     */
     def print (String key) {
         
         def printThatKey = printDirStatus1.rcurry(key)
@@ -155,6 +193,8 @@ class DirStatusTree {
      */
     def printNewMulti (String[] keys) {
         for (key in keys) {
+            printf (printFormats.titleFormat, printFormats.padding, key)
+            println()
             print(key)
         }
     }
@@ -216,32 +256,61 @@ class DirStatusTree {
      */
     private setValue2Obj1 = { DirStatusTree treeObj, String key, String value, boolean overwrite ->
         
-        println "setValue2Obj1 (overwrite='$overwrite'): set value='$value' for key='$key', on $treeObj"
+        // println "setValue2Obj1 (overwrite='$overwrite'): set value='$value' for key='$key', on $treeObj"
         if (treeObj?.myNodeStatus != null) {
-            def newValue = treeObj?.myNodeStatus.setValue (key, value, overwrite)
+            def newValue = treeObj?.myNodeStatus.putStatus (key, value, overwrite)
             //println "newvalue is $newValue"
         }
     }
-   
+
+    /**
+     * It works on the given treeObj and clears (in the myNodeStatus, if that is not null)
+     * the value for the given key.
+     * Note that this function will be called recursively, so it must not call its children.
+     *
+     * @param treeObj the tree object to work on
+     * @param key   the key
+     */
+    private clearValue2Obj1 = { DirStatusTree treeObj, String key ->
+        
+        println "clearValue2Obj1: clear for key='$key', on $treeObj"
+        if (treeObj?.myNodeStatus != null) {
+            def newValue = treeObj?.myNodeStatus.removeStatus (key)
+        }
+    }
+
     private printDirStatus1 = { DirStatusTree treeObj, String key ->  
-    // private printDirStatus = { DirStatusTree treeObj, String[] keys ->
         if (treeObj?.dirStatus) {
-            String value = dirStatus?.getStatus(key)
-            if (value == null) {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
-                //return false
-                return true
-            }
-            else if (value in ['true', 'false', '?']) {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
-                //return false
-                return true
+            String value = treeObj.dirStatus?.getStatus(key)
+            if (value == null || value in ['true', 'false', '?']) {
+                printf (printFormats.lineFormat, [treeObj.dirStatus.parentDir.absolutePath, key, value])
+                return false
             }
             else {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
+                printf (printFormats.lineFormat, [treeObj.dirStatus.parentDir.absolutePath, key, value])
                 return true
             }
-        }      
+        }
+        else if (treeObj?.myNodeStatus) {
+            List v = treeObj.myNodeStatus?.getStatus(key)
+            if (v == null) {
+                printf (printFormats.lineFormat, [treeObj.myNodeStatus.parentDir.absolutePath, key, v])
+                return false
+            }
+            else {
+                String value = v[0]
+                if (value in ['true', 'false', '?']) {
+                    printf (printFormats.lineFormat, [treeObj.myNodeStatus.parentDir.absolutePath, key, value])
+                    return false
+                }
+                else {
+                    printf (printFormats.lineFormat, [treeObj.myNodeStatus.parentDir.absolutePath, key, value])
+                    return true
+                }
+            } 
+        }
+        else 
+            return true
     } 
     
     /**
@@ -253,11 +322,11 @@ class DirStatusTree {
         //println "toFile1 for ${treeObj.parentDir}"
         if (treeObj.myNodeStatus) {
             treeObj.myNodeStatus.toFile()
-            println "(toFile1) written myNodeStatus to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
+            println "written myNodeStatus to file '${MyNodeStatus.FILENAME}' for '${treeObj.parentDir}'"
         }
         if (treeObj.dirStatus) {
             treeObj.dirStatus.toFile()
-            println "(toFile1) written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
+            println "written dirStatus to file '${DirStatus.FILENAME}' for '${treeObj.parentDir}'"
         }
     }
     
@@ -307,7 +376,7 @@ class DirStatusTree {
         // myNodeStatus into the treeObj's dirStatus (forget the old value from treeObj's dirStatus)
         keys.each { key -> 
             println "collecting values for key '$key'"
-            treeObj.dirStatus.clearValue(key)
+            treeObj.dirStatus.removeStatus(key)
             treeObj.children.each { childNode ->
                 //if (childNode.dirStatus?.status != null) {
                 if (childNode.dirStatus != null) {
