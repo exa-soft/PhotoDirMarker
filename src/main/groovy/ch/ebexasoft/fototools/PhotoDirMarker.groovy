@@ -132,7 +132,7 @@ else {
             println "\nWorked on $count tags: set '$value' to the following tags: '$tags'."
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
-            break        
+            break
     }
 }
 
@@ -151,10 +151,10 @@ def print (DirStatusTree statusTree, String[] tags) {
 //    for (tagName in tags) {
 //        statusTree.print (tags)
 //    }
-    for (tagName in tags) {
-        statusTree.print (tagName)
-    }
-
+//    for (tagName in tags) {
+//       statusTree.print (tagName)
+//    }
+    statusTree.printNewMulti(tags)
 }
 
 /**

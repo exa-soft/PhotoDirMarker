@@ -23,13 +23,16 @@ import ch.ebexasoft.Functor
  * @author edith
  *
  */
-class DirStatusTree {
-
+class DirStatusTree {  
+  
     File parentDir
     MyNodeStatus myNodeStatus
     DirStatus dirStatus
     List children = null // contains DirStatusTree objects
+    int longestDirNameLength = 120    // TODO find this longest length in tree
     
+    Map printFormats    // padding, titleFormat, lineFormat - will be initialized in initChildren
+      
     /**
      * 
      */
@@ -47,12 +50,12 @@ class DirStatusTree {
      */
     def initChildren () {
 
-        // collect children, if not already done
+        // collect children, if not already done  
         if (children == null) {
 
             // read info for the current dir (this is non-recursive)
             myNodeStatus = MyNodeStatus.fromDir(parentDir)
-            println "initialized myNodeStatus for $parentDir: $myNodeStatus"
+            // println "initialized myNodeStatus for $parentDir: $myNodeStatus"
 
             // in recursion, first look deeper: collect children
             this.children = []
@@ -72,7 +75,22 @@ class DirStatusTree {
 //                println "written to file: dirStatus for $parentDir"
             }   // if there are children
            
+            initPrintFormats()
         }
+    }
+    
+    /**
+     * uses #longestDirNameLength and initalizes the map with printFormats:
+     * padding, titleFormat, lineFormat
+     */
+    def initPrintFormats () {
+      printFormats = [:]
+      printFormats.padding = " -" * (longestDirNameLength/2)
+      printFormats.titleFormat = '%1$-' + longestDirNameLength + 's : %2$-10s'
+      printFormats.lineFormat = '%1$-' + longestDirNameLength + 's : %2$-10s = %3$s\n'
+      println "padding: '${printFormats.padding}"
+      println "titleFormat: '${printFormats.titleFormat}"
+      println "lineFormat: '${printFormats.lineFormat}"
     }
     
     /**
@@ -155,7 +173,13 @@ class DirStatusTree {
         toFile (this)
     }
 
-    // TODO test print
+    /**
+     * Print status of one key. If a value of 'true' or 'false' or '?' is found,
+     * recursion stops. Otherwise, the value is printed and recursion goes deeper.
+     * For printing, formats {@link #printFormats.titleFormat} and {@link #printFormats.lineFormat} 
+     * are used (with parameter in order: dir, tagname, value).
+     * @param key key for which to print status 
+     */
     def print (String key) {
         
         def printThatKey = printDirStatus1.rcurry(key)
@@ -169,6 +193,8 @@ class DirStatusTree {
      */
     def printNewMulti (String[] keys) {
         for (key in keys) {
+            printf (printFormats.titleFormat, printFormats.padding, key)
+            println()
             print(key)
         }
     }
@@ -254,24 +280,37 @@ class DirStatusTree {
     }
 
     private printDirStatus1 = { DirStatusTree treeObj, String key ->  
-    // private printDirStatus = { DirStatusTree treeObj, String[] keys ->
         if (treeObj?.dirStatus) {
-            String value = dirStatus?.getStatus(key)
-            if (value == null) {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
-                //return false
-                return true
-            }
-            else if (value in ['true', 'false', '?']) {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
-                //return false
-                return true
+            String value = treeObj.dirStatus?.getStatus(key)
+            if (value == null || value in ['true', 'false', '?']) {
+                printf (printFormats.lineFormat, [treeObj.dirStatus.parentDir.absolutePath, key, value])
+                return false
             }
             else {
-                printf ('%1$-100s: %2$-10s = %3$s\n', [treeObj.dirStatus.parentDir.absolutePath, key, value])
+                printf (printFormats.lineFormat, [treeObj.dirStatus.parentDir.absolutePath, key, value])
                 return true
             }
-        }      
+        }
+        else if (treeObj?.myNodeStatus) {
+            List v = treeObj.myNodeStatus?.getStatus(key)
+            if (v == null) {
+                printf (printFormats.lineFormat, [treeObj.myNodeStatus.parentDir.absolutePath, key, v])
+                return false
+            }
+            else {
+                String value = v[0]
+                if (value in ['true', 'false', '?']) {
+                    printf (printFormats.lineFormat, [treeObj.myNodeStatus.parentDir.absolutePath, key, value])
+                    return false
+                }
+                else {
+                    printf (printFormats.lineFormat, [treeObj.myNodeStatus.parentDir.absolutePath, key, value])
+                    return true
+                }
+            } 
+        }
+        else 
+            return true
     } 
     
     /**
