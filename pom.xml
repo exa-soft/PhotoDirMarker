@@ -4,7 +4,7 @@
 
  <groupId>ch.ebexasoft.fototools</groupId>
  <artifactId>PhotoDirMarker</artifactId>
- <version>0.1.1-SNAPSHOT</version>
+ <version>0.1.2-SNAPSHOT</version>
 
  <name>PhotoDirMarker</name>
  <url>https://github.com/exa-soft/${path.sites}</url>
