@@ -48,7 +48,7 @@ if (options.h) {
 }
 
 // define workdir
-println "have '-d' option: ${options.d}"
+//println "have '-d' option: ${options.d}"
 def File workdir = new File (options.d ?: '.')  // use current directory if no d option defined
 println "will work on dir ${workdir}"
 
@@ -65,11 +65,6 @@ else println "will work recursively, starting from '$workdir'"
 def String tags
 def String value
 def overwrite = true
-if (options.i) { tags = options.i; value = 'false'; overwrite = false } 
-if (options.m) { tags = options.m; value = 'true' }
-if (options.u) { tags = options.u; value = 'false' }
-if (options.c) tags = options.c
-if (options.p) tags = options.p
 if (options.s) { 
     tags = options.ss[0]
     value = options.ss[1]
@@ -86,8 +81,15 @@ if (options.s) {
     }
     println "value to set is '$value'"
 }
-if (!tags) {
-    println "ERROR: No operation specified. You must specify one option of i, m, u, c, p, s (if specified multiple, the first one wins, in the given order)."
+if (options.u) { tags = options.u; value = 'false' }
+if (options.m) { tags = options.m; value = 'true' }
+if (options.i) { tags = options.i; value = 'false'; overwrite = false } 
+if (options.c) tags = options.c
+if (options.f) tags = ''
+if (options.p) tags = options.p
+
+if (!options.f && !tags) {
+    println "ERROR: No operation specified. You must specify one option of p, f, c, i, m, u, s (if specified multiple, the first one wins, in the given order)."
     println "Call PhotoDirMarker -h to display usage."
     System.exit(-15)
 
@@ -116,10 +118,12 @@ if (options.p) {
 }
 else {
     switch (options) {
+        case (options.f):   
+            dirStatusTree.recollect()
+            dirStatusTree.writeChangesToFiles()
+            break
         case (options.c):
             clearValue (dirStatusTree, taglist)
-            // fallthrough is intentional (clearValue also needs recollect & write)
-        case (options.f):   
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
             break
@@ -168,9 +172,11 @@ def int setValue (DirStatusTree statusTree, String[] tags, String value) {
     
     int count = 0
     for (tagName in tags) {
-        println "\nsetting tag '$tagName' to value '$value'"
-        statusTree.setValue (tagName, value, true)   // true to overwrite
-        count++
+        if (tagName != null && !tagName.empty) {
+            println "\nsetting tag '$tagName' to value '$value'"
+            statusTree.setValue (tagName, value, true)   // true to overwrite
+            count++
+        }
     }
     return count
 }
@@ -185,9 +191,11 @@ def int clearValue (DirStatusTree statusTree, String[] tags) {
     
     int count = 0
     for (tagName in tags) {
-        println "\nsetting tag '$tagName' to value '$value'"
-        statusTree.setValue (tagName, value, true)   // true to overwrite
-        count++
+        if (tagName != null && !tagName.empty) {
+            println "\nsetting tag '$tagName' to value '$value'"
+            statusTree.setValue (tagName, value, true)   // true to overwrite
+            count++
+        }
     }
     return count
 }
