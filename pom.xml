@@ -4,7 +4,7 @@
 
  <groupId>ch.ebexasoft.fototools</groupId>
  <artifactId>PhotoDirMarker</artifactId>
- <version>0.2.2-SNAPSHOT</version>
+ <version>0.2.3-SNAPSHOT</version>
 
  <name>PhotoDirMarker</name>
  <url>https://github.com/exa-soft/${path.sites}</url>
@@ -42,7 +42,7 @@
   <groupId>ch.ebexasoft</groupId>
   <artifactId>corporate-pom</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <relativePath>../../ebEXAbase/CorporatePOM</relativePath>
+  <relativePath>../../CorporatePOM_ebexasoft</relativePath>
  </parent>
 
  <dependencies>

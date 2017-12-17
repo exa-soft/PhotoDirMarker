@@ -132,8 +132,8 @@ else {
         case (options.u):
         case (options.s):
         default:
-            def count = setValue (dirStatusTree, taglist, value)
-            println "\nWorked on $count tags: set '$value' to the following tags: '$tags'."
+            def count = setValue (dirStatusTree, taglist, value, overwrite)
+            println "\nWorked on $count tags: set '$value' (overwrite: '$overwrite') to the following tags: '$tags'."
             dirStatusTree.recollect()
             dirStatusTree.writeChangesToFiles()
             break
@@ -168,13 +168,13 @@ def print (DirStatusTree statusTree, String[] tags) {
  * @param overwrite true to overwrite existing values, false to keep them
  * @return      count how many values have been set
  */
-def int setValue (DirStatusTree statusTree, String[] tags, String value) {
+def int setValue (DirStatusTree statusTree, String[] tags, String value, boolean overwrite) {
     
     int count = 0
     for (tagName in tags) {
         if (tagName != null && !tagName.empty) {
-            println "\nsetting tag '$tagName' to value '$value'"
-            statusTree.setValue (tagName, value, true)   // true to overwrite
+            println "\nsetting tag '$tagName' to value '$value', overwrite: '$overwrite'"
+            statusTree.setValue (tagName, value, overwrite)
             count++
         }
     }
